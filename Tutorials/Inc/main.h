@@ -49,10 +49,6 @@
 #define QSPI_D2_GPIO_Port GPIOE
 #define RMII_TXD1_Pin GPIO_PIN_14
 #define RMII_TXD1_GPIO_Port GPIOG
-#define FMC_NBL1_Pin GPIO_PIN_1
-#define FMC_NBL1_GPIO_Port GPIOE
-#define FMC_NBL0_Pin GPIO_PIN_0
-#define FMC_NBL0_GPIO_Port GPIOE
 #define ARDUINO_SCL_D15_Pin GPIO_PIN_8
 #define ARDUINO_SCL_D15_GPIO_Port GPIOB
 #define ULPI_D7_Pin GPIO_PIN_5
@@ -83,8 +79,6 @@
 #define VCP_RX_GPIO_Port GPIOB
 #define QSPI_NCS_Pin GPIO_PIN_6
 #define QSPI_NCS_GPIO_Port GPIOB
-#define FMC_SDNCAS_Pin GPIO_PIN_15
-#define FMC_SDNCAS_GPIO_Port GPIOG
 #define RMII_TX_EN_Pin GPIO_PIN_11
 #define RMII_TX_EN_GPIO_Port GPIOG
 #define LCD_B1_Pin GPIO_PIN_13
@@ -93,8 +87,6 @@
 #define OTG_FS_VBUS_GPIO_Port GPIOJ
 #define Audio_INT_Pin GPIO_PIN_6
 #define Audio_INT_GPIO_Port GPIOD
-#define FMC_D2_Pin GPIO_PIN_0
-#define FMC_D2_GPIO_Port GPIOD
 #define SDMMC_D3_Pin GPIO_PIN_11
 #define SDMMC_D3_GPIO_Port GPIOC
 #define SDMMC_D2_Pin GPIO_PIN_10
@@ -131,8 +123,6 @@
 #define OTG_FS_N_GPIO_Port GPIOA
 #define uSD_Detect_Pin GPIO_PIN_13
 #define uSD_Detect_GPIO_Port GPIOC
-#define FMC_A0_Pin GPIO_PIN_0
-#define FMC_A0_GPIO_Port GPIOF
 #define SAI2_SCKA_Pin GPIO_PIN_5
 #define SAI2_SCKA_GPIO_Port GPIOI
 #define SAI2_FSA_Pin GPIO_PIN_7
@@ -159,8 +149,6 @@
 #define OTG_FS_ID_GPIO_Port GPIOA
 #define RCC_OSC32_IN_Pin GPIO_PIN_14
 #define RCC_OSC32_IN_GPIO_Port GPIOC
-#define FMC_A1_Pin GPIO_PIN_1
-#define FMC_A1_GPIO_Port GPIOF
 #define LCD_DISP_Pin GPIO_PIN_12
 #define LCD_DISP_GPIO_Port GPIOI
 #define LCD_VSYNC_Pin GPIO_PIN_9

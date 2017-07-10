@@ -116,7 +116,12 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   MT48LC4M32B2_Init(&hsdram1);
-  Fill_Buffer(aTxBuffer, BUFFER_SIZE, 0x37BA0F68);
+  Fill_Buffer(aTxBuffer, BUFFER_SIZE, 0xDEADC0DE);
+
+  *(__IO uint32_t*) (SDRAM_BANK_ADDR + WRITE_READ_ADDR) = 0x12345678;
+  volatile uint32_t temp = *(__IO uint32_t*) (SDRAM_BANK_ADDR + WRITE_READ_ADDR);
+  if(temp == 0)
+	  asm("nop");
 
   for (uwIndex = 0; uwIndex < BUFFER_SIZE; uwIndex++)
   {
@@ -813,6 +818,50 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void HAL_SDRAM_MspInit(SDRAM_HandleTypeDef *hsdram)
+{
+	GPIO_InitTypeDef gpio_init_structure;
+
+	/* Enable FMC clock */
+	__HAL_RCC_FMC_CLK_ENABLE();
+
+	/* Common GPIO configuration */
+	gpio_init_structure.Mode      = GPIO_MODE_AF_PP;
+	gpio_init_structure.Pull      = GPIO_PULLUP;
+	gpio_init_structure.Speed     = GPIO_SPEED_FAST;
+	gpio_init_structure.Alternate = GPIO_AF12_FMC;
+
+	/* GPIOC configuration */
+	gpio_init_structure.Pin   = GPIO_PIN_3;
+	HAL_GPIO_Init(GPIOC, &gpio_init_structure);
+
+	/* GPIOD configuration */
+	gpio_init_structure.Pin   = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_8 | GPIO_PIN_9 |
+                                GPIO_PIN_10 | GPIO_PIN_14 | GPIO_PIN_15;
+	HAL_GPIO_Init(GPIOD, &gpio_init_structure);
+
+	/* GPIOE configuration */
+	gpio_init_structure.Pin   = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_7| GPIO_PIN_8 | GPIO_PIN_9 |\
+                                GPIO_PIN_10 | GPIO_PIN_11 | GPIO_PIN_12 | GPIO_PIN_13 | GPIO_PIN_14 |\
+                                GPIO_PIN_15;
+    HAL_GPIO_Init(GPIOE, &gpio_init_structure);
+
+    /* GPIOF configuration */
+    gpio_init_structure.Pin   = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_2| GPIO_PIN_3 | GPIO_PIN_4 |\
+                                GPIO_PIN_5 | GPIO_PIN_11 | GPIO_PIN_12 | GPIO_PIN_13 | GPIO_PIN_14 |\
+                                GPIO_PIN_15;
+    HAL_GPIO_Init(GPIOF, &gpio_init_structure);
+
+    /* GPIOG configuration */
+    gpio_init_structure.Pin   = GPIO_PIN_0 | GPIO_PIN_1 | GPIO_PIN_4| GPIO_PIN_5 | GPIO_PIN_8 |\
+                                GPIO_PIN_15;
+    HAL_GPIO_Init(GPIOG, &gpio_init_structure);
+
+    /* GPIOH configuration */
+    gpio_init_structure.Pin   = GPIO_PIN_3 | GPIO_PIN_5;
+    HAL_GPIO_Init(GPIOH, &gpio_init_structure);
+}
 
 /* USER CODE END 4 */
 

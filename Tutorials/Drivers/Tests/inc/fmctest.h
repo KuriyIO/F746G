@@ -1,8 +1,8 @@
 #ifndef __FMCTEST_H
 #define __FMCTEST_H
 
+#include <SDRAM.h>
 #include "stm32f7xx_hal.h"
-#include "MT48LC4M32B2.h"
 #include "string.h"
 #include "stdint.h"
 

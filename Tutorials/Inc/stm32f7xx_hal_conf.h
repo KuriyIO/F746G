@@ -68,9 +68,9 @@
 /* #define HAL_I2S_MODULE_ENABLED   */
 /* #define HAL_IWDG_MODULE_ENABLED   */
 /* #define HAL_LPTIM_MODULE_ENABLED   */
-/* #define HAL_LTDC_MODULE_ENABLED   */
+#define HAL_LTDC_MODULE_ENABLED
 /* #define HAL_QSPI_MODULE_ENABLED   */
-/* #define HAL_RNG_MODULE_ENABLED   */
+#define HAL_RNG_MODULE_ENABLED
 /* #define HAL_RTC_MODULE_ENABLED   */
 /* #define HAL_SAI_MODULE_ENABLED   */
 /* #define HAL_SD_MODULE_ENABLED   */
@@ -423,10 +423,6 @@
 #ifdef HAL_SMBUS_MODULE_ENABLED
  #include "stm32f7xx_hal_smbus.h"
 #endif /* HAL_SMBUS_MODULE_ENABLED */
-
-#ifdef HAL_MMC_MODULE_ENABLED
- #include "stm32f7xx_hal_mmc.h"
-#endif /* HAL_MMC_MODULE_ENABLED */
 
 /* Exported macro ------------------------------------------------------------*/
 #ifdef  USE_FULL_ASSERT

@@ -1,10 +1,10 @@
-#include "MT48LC4M32B2.h"
+#include <SDRAM.h>
 
 FMC_SDRAM_CommandTypeDef command;
 HAL_StatusTypeDef hal_stat;
 
 
-void MT48LC4M32B2_Init(SDRAM_HandleTypeDef *hsdram)
+void SDRAM_Init(SDRAM_HandleTypeDef *hsdram)
 {
 	__IO uint32_t tmpmrd = 0;	//temp Mode Register Data
 

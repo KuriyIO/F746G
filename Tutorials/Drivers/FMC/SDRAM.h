@@ -17,7 +17,7 @@
 #define SDRAM_MODEREG_WRITEBURST_MODE_PROGRAMMED ((uint16_t)0x0000)
 #define SDRAM_MODEREG_WRITEBURST_MODE_SINGLE     ((uint16_t)0x0200)
 
-void MT48LC4M32B2_Init(SDRAM_HandleTypeDef *hsdram);
+void SDRAM_Init(SDRAM_HandleTypeDef *hsdram);
 #define SDRAM_BANK_ADDR		((uint32_t)0xC0000000)
 
 #endif /* __MT48LC4M32B2_H */

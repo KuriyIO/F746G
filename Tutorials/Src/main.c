@@ -37,6 +37,8 @@
 /* USER CODE BEGIN Includes */
 #include "MT48LC4M32B2.h"
 #include "string.h"
+
+#include "../Drivers/Tests/inc/fmctest.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -48,11 +50,7 @@ SDRAM_HandleTypeDef hsdram1;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
-#define BUFFER_SIZE         ((uint32_t)0x0100)
-#define WRITE_READ_ADDR     ((uint32_t)0x0800)
-uint32_t aTxBuffer[BUFFER_SIZE];
-uint32_t aRxBuffer[BUFFER_SIZE];
-uint32_t uwIndex = 0;
+#define TEST_PRINT
 
 /* USER CODE END PV */
 
@@ -71,24 +69,13 @@ static void MX_FMC_Init(void);
 
 /* USER CODE BEGIN 0 */
 
-static void Fill_Buffer(uint32_t *pBuffer, uint32_t uwBufferLenght, uint32_t uwOffset)
-{
-	uint32_t tmpIndex = 0;
-
-	/* Put in global buffer different values */
-	for (tmpIndex = 0; tmpIndex < uwBufferLenght; tmpIndex++ )
-	{
-		pBuffer[tmpIndex] = tmpIndex + uwOffset;
-	}
-}
-
 /* USER CODE END 0 */
 
 int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-  char str1[20] = {0};
+
   /* USER CODE END 1 */
 
   /* MPU Configuration----------------------------------------------------------*/
@@ -116,29 +103,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   MT48LC4M32B2_Init(&hsdram1);
-  Fill_Buffer(aTxBuffer, BUFFER_SIZE, 0xDEADC0DE);
-
-  *(__IO uint32_t*) (SDRAM_BANK_ADDR + WRITE_READ_ADDR) = 0x12345678;
-  volatile uint32_t temp = *(__IO uint32_t*) (SDRAM_BANK_ADDR + WRITE_READ_ADDR);
-  if(temp == 0)
-	  asm("nop");
-
-  for (uwIndex = 0; uwIndex < BUFFER_SIZE; uwIndex++)
-  {
-	  *(__IO uint32_t*) (SDRAM_BANK_ADDR + WRITE_READ_ADDR + 4*uwIndex) = aTxBuffer[uwIndex];
-  }
-
-  for (uwIndex = 0; uwIndex < BUFFER_SIZE; uwIndex++)
-  {
-	  aRxBuffer[uwIndex] = *(__IO uint32_t*) (SDRAM_BANK_ADDR + WRITE_READ_ADDR + 4*uwIndex);
-  }
-
-  for (uwIndex = 0; uwIndex < BUFFER_SIZE; uwIndex++)
-  {
-	  sprintf(str1,"%03ld: 0x%08lX\r\n",(unsigned long) uwIndex,(unsigned long)aRxBuffer[uwIndex]);
-	  HAL_UART_Transmit(&huart1, (uint8_t*)str1,strlen(str1),0x1000);
-	  HAL_Delay(100);
-  }
+  fmc_test(&huart1);
 
   HAL_GPIO_WritePin(GPIOI, GPIO_PIN_1, GPIO_PIN_SET);
 

@@ -15,9 +15,20 @@ void fmc_test(UART_HandleTypeDef *huart)
 {
 	uint32_t aTxBuffer[BUFFER_SIZE];
 	uint32_t aRxBuffer[BUFFER_SIZE];
+	uint32_t writeBackBuffer[BUFFER_SIZE];
 	uint32_t uwIndex;
 
+	/* Starting test */
 	char testtmpstr[20] = {0};
+	sprintf(testtmpstr,"FMC TEST STARTED\r\n");
+	HAL_UART_Transmit(huart, (uint8_t*)testtmpstr,strlen(testtmpstr),0x1000);
+	HAL_Delay(100);
+
+	/* Saving data for backup */
+	for (uwIndex = 0; uwIndex < BUFFER_SIZE; uwIndex++)
+	{
+		writeBackBuffer[uwIndex] = *(__IO uint32_t*) (SDRAM_BANK_ADDR + WRITE_READ_ADDR + 4*uwIndex);
+	}
 
 	/* init buffer with some values */
 	Fill_Buffer(aTxBuffer, BUFFER_SIZE, 0xDEADC0DE);
@@ -64,6 +75,12 @@ void fmc_test(UART_HandleTypeDef *huart)
 //		HAL_UART_Transmit(huart, (uint8_t*)testtmpstr,strlen(testtmpstr),0x1000);
 //		HAL_Delay(100);
 //	}
+
+	/* Restoring data from backup */
+	for (uwIndex = 0; uwIndex < BUFFER_SIZE; uwIndex++)
+	{
+		*(__IO uint32_t*) (SDRAM_BANK_ADDR + WRITE_READ_ADDR + 4*uwIndex) = writeBackBuffer[uwIndex];
+	}
 
 	sprintf(testtmpstr,"FMC TEST PASSED OK!\r\n");
 	HAL_UART_Transmit(huart, (uint8_t*)testtmpstr,strlen(testtmpstr),0x1000);

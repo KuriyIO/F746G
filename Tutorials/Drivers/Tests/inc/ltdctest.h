@@ -6,6 +6,7 @@
 #include "stdint.h"
 #include "lcd.h"
 
-void ltdc_test(LTDC_HandleTypeDef *hltdc, volatile uint32_t *LTDC_MEM, RNG_HandleTypeDef *hrng);
+void ltdc_test(void);
+void ltdc_test_565(void);
 
 #endif

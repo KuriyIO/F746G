@@ -1,13 +1,14 @@
 #include "ltdctest.h"
 
-void ltdc_test(LTDC_HandleTypeDef *hltdc, volatile uint32_t *LTDC_MEM, RNG_HandleTypeDef *hrng)
+extern RNG_HandleTypeDef hrng;
+
+void ltdc_test(void)
 {
-	HAL_LTDC_SetAddress(hltdc, LTDC_MEM, 0);
 	LCD_FillScreen(0);
 
 	for(int i=0;i<100;i++)
 	{
-		LCD_FillScreen((uint16_t)HAL_RNG_GetRandomNumber(hrng));
+		LCD_FillScreen(HAL_RNG_GetRandomNumber(&hrng));
 		HAL_Delay(100);
 	}
 
@@ -16,11 +17,11 @@ void ltdc_test(LTDC_HandleTypeDef *hltdc, volatile uint32_t *LTDC_MEM, RNG_Handl
 
 	for(int i=0;i<1000;i++)
 	{
-		LCD_FillRectangle(HAL_RNG_GetRandomNumber(hrng)%480,
-						  HAL_RNG_GetRandomNumber(hrng)%272,
-						  HAL_RNG_GetRandomNumber(hrng)%480,
-						  HAL_RNG_GetRandomNumber(hrng)%272,
-						  (uint16_t)HAL_RNG_GetRandomNumber(hrng));
+		LCD_FillRectangle(HAL_RNG_GetRandomNumber(&hrng)%480,
+						  HAL_RNG_GetRandomNumber(&hrng)%272,
+						  HAL_RNG_GetRandomNumber(&hrng)%480,
+						  HAL_RNG_GetRandomNumber(&hrng)%272,
+						  HAL_RNG_GetRandomNumber(&hrng));
 
 		HAL_Delay(10);
 	}
@@ -30,15 +31,27 @@ void ltdc_test(LTDC_HandleTypeDef *hltdc, volatile uint32_t *LTDC_MEM, RNG_Handl
 
 	for(int i=0;i<10000;i++)
 	{
+		LCD_DrawPixel(HAL_RNG_GetRandomNumber(&hrng)%480,
+					  HAL_RNG_GetRandomNumber(&hrng)%272,
+					  HAL_RNG_GetRandomNumber(&hrng));
+
+		HAL_Delay(1);
+	}
+
+	LCD_FillScreen(0);
+	HAL_Delay(1000);
+
+	for(int i=0;i<10000;i++)
+	{
 		for(int j=0;j<100;j++)
 		{
-			LCD_DrawPixel(HAL_RNG_GetRandomNumber(hrng)%480,
-						  HAL_RNG_GetRandomNumber(hrng)%272,0);
+			LCD_DrawPixel(HAL_RNG_GetRandomNumber(&hrng)%480,
+						  HAL_RNG_GetRandomNumber(&hrng)%272,0);
 		}
 
-		LCD_DrawPixel(HAL_RNG_GetRandomNumber(hrng)%480,
-					  HAL_RNG_GetRandomNumber(hrng)%272,
-					  (uint16_t)HAL_RNG_GetRandomNumber(hrng));
+		LCD_DrawPixel(HAL_RNG_GetRandomNumber(&hrng)%480,
+					  HAL_RNG_GetRandomNumber(&hrng)%272,
+					  HAL_RNG_GetRandomNumber(&hrng));
 
 		HAL_Delay(1);
 	}
@@ -48,15 +61,75 @@ void ltdc_test(LTDC_HandleTypeDef *hltdc, volatile uint32_t *LTDC_MEM, RNG_Handl
 
 	for(int i=0;i<1000;i++)
 	{
-		LCD_DrawLine(HAL_RNG_GetRandomNumber(hrng)%480,
-					 HAL_RNG_GetRandomNumber(hrng)%272,
-					 HAL_RNG_GetRandomNumber(hrng)%480,
-					 HAL_RNG_GetRandomNumber(hrng)%272,
-					 (uint16_t)HAL_RNG_GetRandomNumber(hrng));
+		LCD_DrawLine(HAL_RNG_GetRandomNumber(&hrng)%480,
+					 HAL_RNG_GetRandomNumber(&hrng)%272,
+					 HAL_RNG_GetRandomNumber(&hrng)%480,
+					 HAL_RNG_GetRandomNumber(&hrng)%272,
+					 HAL_RNG_GetRandomNumber(&hrng));
 
 		HAL_Delay(10);
 	}
 
 	LCD_FillScreen(0);
+	HAL_Delay(1000);
+}
+
+void ltdc_test_565(void)
+{
+	LCD_FillScreen_565(0);
+
+	for(int i=0;i<100;i++)
+	{
+		LCD_FillScreen_565((uint16_t)HAL_RNG_GetRandomNumber(&hrng));
+		HAL_Delay(100);
+	}
+
+	LCD_FillScreen_565(0);
+	HAL_Delay(1000);
+
+	for(int i=0;i<1000;i++)
+	{
+		LCD_FillRectangle_565(HAL_RNG_GetRandomNumber(&hrng)%480,
+						  HAL_RNG_GetRandomNumber(&hrng)%272,
+						  HAL_RNG_GetRandomNumber(&hrng)%480,
+						  HAL_RNG_GetRandomNumber(&hrng)%272,
+						  (uint16_t)HAL_RNG_GetRandomNumber(&hrng));
+
+		HAL_Delay(10);
+	}
+
+	LCD_FillScreen_565(0);
+	HAL_Delay(1000);
+
+	for(int i=0;i<10000;i++)
+	{
+		for(int j=0;j<100;j++)
+		{
+			LCD_DrawPixel_565(HAL_RNG_GetRandomNumber(&hrng)%480,
+						  HAL_RNG_GetRandomNumber(&hrng)%272,0);
+		}
+
+		LCD_DrawPixel_565(HAL_RNG_GetRandomNumber(&hrng)%480,
+					  HAL_RNG_GetRandomNumber(&hrng)%272,
+					  (uint16_t)HAL_RNG_GetRandomNumber(&hrng));
+
+		HAL_Delay(1);
+	}
+
+	LCD_FillScreen_565(0);
+	HAL_Delay(1000);
+
+	for(int i=0;i<1000;i++)
+	{
+		LCD_DrawLine_565(HAL_RNG_GetRandomNumber(&hrng)%480,
+					 HAL_RNG_GetRandomNumber(&hrng)%272,
+					 HAL_RNG_GetRandomNumber(&hrng)%480,
+					 HAL_RNG_GetRandomNumber(&hrng)%272,
+					 (uint16_t)HAL_RNG_GetRandomNumber(&hrng));
+
+		HAL_Delay(10);
+	}
+
+	LCD_FillScreen_565(0);
 	HAL_Delay(1000);
 }

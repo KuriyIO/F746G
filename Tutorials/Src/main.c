@@ -60,7 +60,7 @@ SDRAM_HandleTypeDef hsdram1;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
-volatile uint32_t RGB565_480x272[65280] = {0x00000000};
+#define LCD_FRAME_BUFFER          SDRAM_BANK_ADDR
 
 /* USER CODE END PV */
 
@@ -124,7 +124,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   SDRAM_Init(&hsdram1);
-  fmc_test(&huart1);
+  //fmc_test(&huart1);
+  HAL_LTDC_SetAddress(&hltdc,LCD_FRAME_BUFFER,0);
 
   HAL_GPIO_WritePin(GPIOI, GPIO_PIN_1, GPIO_PIN_SET);
 
@@ -137,7 +138,7 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-	  ltdc_test(&hltdc, RGB565_480x272, &hrng);
+	  ltdc_test();
   }
   /* USER CODE END 3 */
 
@@ -167,7 +168,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLM = 25;
   RCC_OscInitStruct.PLL.PLLN = 400;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 8;
+  RCC_OscInitStruct.PLL.PLLQ = 10;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -197,11 +198,11 @@ void SystemClock_Config(void)
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_LTDC|RCC_PERIPHCLK_USART1
                               |RCC_PERIPHCLK_CLK48;
   PeriphClkInitStruct.PLLSAI.PLLSAIN = 192;
-  PeriphClkInitStruct.PLLSAI.PLLSAIR = 2;
+  PeriphClkInitStruct.PLLSAI.PLLSAIR = 3;
   PeriphClkInitStruct.PLLSAI.PLLSAIQ = 2;
   PeriphClkInitStruct.PLLSAI.PLLSAIP = RCC_PLLSAIP_DIV4;
   PeriphClkInitStruct.PLLSAIDivQ = 1;
-  PeriphClkInitStruct.PLLSAIDivR = RCC_PLLSAIDIVR_2;
+  PeriphClkInitStruct.PLLSAIDivR = RCC_PLLSAIDIVR_4;
   PeriphClkInitStruct.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
   PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48SOURCE_PLLSAIP;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
@@ -252,7 +253,7 @@ static void MX_LTDC_Init(void)
   pLayerCfg.WindowX1 = 480;
   pLayerCfg.WindowY0 = 0;
   pLayerCfg.WindowY1 = 272;
-  pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
+  pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_ARGB8888;
   pLayerCfg.Alpha = 255;
   pLayerCfg.Alpha0 = 0;
   pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_CA;
@@ -872,8 +873,8 @@ void MPU_Config(void)
     */
   MPU_InitStruct.Enable = MPU_REGION_ENABLE;
   MPU_InitStruct.Number = MPU_REGION_NUMBER0;
-  MPU_InitStruct.BaseAddress = 0x20010000;
-  MPU_InitStruct.Size = MPU_REGION_SIZE_256KB;
+  MPU_InitStruct.BaseAddress = 0xC0000000;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_4MB;
   MPU_InitStruct.SubRegionDisable = 0x0;
   MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
   MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;

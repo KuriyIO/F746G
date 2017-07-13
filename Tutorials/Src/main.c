@@ -3,41 +3,52 @@
   * File Name          : main.c
   * Description        : Main program body
   ******************************************************************************
-  ** This notice applies to any and all portions of this file
+  * This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
   * USER CODE END. Other portions of this file, whether 
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * COPYRIGHT(c) 2017 STMicroelectronics
+  * Copyright (c) 2017 STMicroelectronics International N.V. 
+  * All rights reserved.
   *
-  * Redistribution and use in source and binary forms, with or without modification,
-  * are permitted provided that the following conditions are met:
-  *   1. Redistributions of source code must retain the above copyright notice,
-  *      this list of conditions and the following disclaimer.
-  *   2. Redistributions in binary form must reproduce the above copyright notice,
-  *      this list of conditions and the following disclaimer in the documentation
-  *      and/or other materials provided with the distribution.
-  *   3. Neither the name of STMicroelectronics nor the names of its contributors
-  *      may be used to endorse or promote products derived from this software
-  *      without specific prior written permission.
+  * Redistribution and use in source and binary forms, with or without 
+  * modification, are permitted, provided that the following conditions are met:
   *
-  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  * 1. Redistribution of source code must retain the above copyright notice, 
+  *    this list of conditions and the following disclaimer.
+  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  *    this list of conditions and the following disclaimer in the documentation
+  *    and/or other materials provided with the distribution.
+  * 3. Neither the name of STMicroelectronics nor the names of other 
+  *    contributors to this software may be used to endorse or promote products 
+  *    derived from this software without specific written permission.
+  * 4. This software, including modifications and/or derivative works of this 
+  *    software, must execute solely and exclusively on microcontroller or
+  *    microprocessor devices manufactured by or for STMicroelectronics.
+  * 5. Redistribution and use of this software other than as permitted under 
+  *    this license is void and will automatically terminate your rights under 
+  *    this license. 
+  *
+  * THIS SOFTWARE IS PROVIDED BY STMICROELECTRONICS AND CONTRIBUTORS "AS IS" 
+  * AND ANY EXPRESS, IMPLIED OR STATUTORY WARRANTIES, INCLUDING, BUT NOT 
+  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+  * PARTICULAR PURPOSE AND NON-INFRINGEMENT OF THIRD PARTY INTELLECTUAL PROPERTY
+  * RIGHTS ARE DISCLAIMED TO THE FULLEST EXTENT PERMITTED BY LAW. IN NO EVENT 
+  * SHALL STMICROELECTRONICS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, 
+  * OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
+  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
   */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f7xx_hal.h"
+#include "fatfs.h"
 
 /* USER CODE BEGIN Includes */
 #include "SDRAM.h"
@@ -53,6 +64,8 @@ LTDC_HandleTypeDef hltdc;
 
 RNG_HandleTypeDef hrng;
 
+SD_HandleTypeDef hsd1;
+
 UART_HandleTypeDef huart1;
 
 SDRAM_HandleTypeDef hsdram1;
@@ -61,6 +74,13 @@ SDRAM_HandleTypeDef hsdram1;
 /* Private variables ---------------------------------------------------------*/
 
 #define LCD_FRAME_BUFFER          SDRAM_BANK_ADDR
+
+FATFS SDFatFs; /* File system object for SD card logical drive */
+FIL MyFile; /* File object */
+extern char SD_Path[4]; /* SD logical drive path */
+uint8_t sect[4096];
+uint32_t bytesread = 0;
+uint8_t* bmp1;
 
 /* USER CODE END PV */
 
@@ -72,6 +92,7 @@ static void MX_USART1_UART_Init(void);
 static void MX_FMC_Init(void);
 static void MX_LTDC_Init(void);
 static void MX_RNG_Init(void);
+static void MX_SDMMC1_SD_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -79,7 +100,56 @@ static void MX_RNG_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+uint32_t OpenBMP(uint8_t *ptr, const char* fname)
+{
+ uint32_t ind = 0, sz = 0, i1 = 0, ind1 = 0;
+ static uint32_t bmp_addr;
+ if(f_open(&MyFile, fname, FA_READ) != FR_OK)
+ {
+   LCD_FillScreen(0xFFFF0000); //в случае неудачи окрасим экран в красный цвет
+ }
+ else
+ {
+   if (f_read (&MyFile, sect, 30, (UINT *)bytesread) != FR_OK)
+   {
+     Error_Handler();
+   }
+   else
+   {
+     bmp_addr = (uint32_t)sect;
+     sz = *(uint16_t *) (bmp_addr + 2);
+     sz |= (*(uint16_t *) (bmp_addr + 4)) << 16;
 
+     /* Get bitmap data address offset */
+     ind = *(uint16_t *) (bmp_addr + 10);
+     ind |= (*(uint16_t *) (bmp_addr + 12)) << 16;
+     f_close (&MyFile);
+     f_open (&MyFile, fname, FA_READ);
+     ind=0;
+     do
+     {
+       if (sz < 4096)
+       {
+         i1 = sz;
+       }
+       else
+       {
+         i1 = 4096;
+       }
+       sz -= i1;
+       f_lseek(&MyFile,ind1);
+       f_read (&MyFile, sect, i1, (UINT *)&bytesread);
+
+       memcpy((void*)(bmp1+ind1), (void*)sect, i1);
+       ind1+=i1;
+     }
+     while (sz > 0);
+     f_close (&MyFile);
+   }
+   ind1=0;
+ }
+ return 0;
+}
 /* USER CODE END 0 */
 
 int main(void)
@@ -120,14 +190,24 @@ int main(void)
   MX_FMC_Init();
   MX_LTDC_Init();
   MX_RNG_Init();
+  MX_SDMMC1_SD_Init();
+  MX_FATFS_Init();
 
   /* USER CODE BEGIN 2 */
 
   SDRAM_Init(&hsdram1);
-  //fmc_test(&huart1);
   HAL_LTDC_SetAddress(&hltdc,LCD_FRAME_BUFFER,0);
 
+#ifdef FULL_TEST
+  fmc_test(&huart1);
   HAL_GPIO_WritePin(GPIOI, GPIO_PIN_1, GPIO_PIN_SET);
+#endif
+
+  if(f_mount(&SDFatFs, (TCHAR const*)SD_Path, 0) != FR_OK)
+  {
+   LCD_FillScreen(0xFFFF0000); //в случае неудачи окрасим экран в красный цвет
+   Error_Handler();
+  }
 
   /* USER CODE END 2 */
 
@@ -138,7 +218,21 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
+#ifdef FULL_TEST
 	  ltdc_test();
+#endif
+
+	  bmp1 = (uint8_t *)0xC00FF000;
+	  char str1[20] = {0};
+
+	  for(int j=1;j<=10;j++)
+	  {
+	      sprintf(str1,"image%02d.bmp",j);
+	      OpenBMP((uint8_t *)bmp1,str1);
+	      LCD_DrawBitmap(0,0,(uint8_t *)bmp1);
+
+	      HAL_Delay(3000);
+	  }
   }
   /* USER CODE END 3 */
 
@@ -196,7 +290,7 @@ void SystemClock_Config(void)
   }
 
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_LTDC|RCC_PERIPHCLK_USART1
-                              |RCC_PERIPHCLK_CLK48;
+                              |RCC_PERIPHCLK_SDMMC1|RCC_PERIPHCLK_CLK48;
   PeriphClkInitStruct.PLLSAI.PLLSAIN = 192;
   PeriphClkInitStruct.PLLSAI.PLLSAIR = 3;
   PeriphClkInitStruct.PLLSAI.PLLSAIQ = 2;
@@ -205,6 +299,7 @@ void SystemClock_Config(void)
   PeriphClkInitStruct.PLLSAIDivR = RCC_PLLSAIDIVR_4;
   PeriphClkInitStruct.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
   PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48SOURCE_PLLSAIP;
+  PeriphClkInitStruct.Sdmmc1ClockSelection = RCC_SDMMC1CLKSOURCE_CLK48;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -283,6 +378,20 @@ static void MX_RNG_Init(void)
 
 }
 
+/* SDMMC1 init function */
+static void MX_SDMMC1_SD_Init(void)
+{
+
+  hsd1.Instance = SDMMC1;
+  hsd1.Init.ClockEdge = SDMMC_CLOCK_EDGE_RISING;
+  hsd1.Init.ClockBypass = SDMMC_CLOCK_BYPASS_DISABLE;
+  hsd1.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_DISABLE;
+  hsd1.Init.BusWide = SDMMC_BUS_WIDE_1B;
+  hsd1.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
+  hsd1.Init.ClockDiv = 0;
+
+}
+
 /* USART1 init function */
 static void MX_USART1_UART_Init(void)
 {
@@ -350,7 +459,6 @@ static void MX_FMC_Init(void)
      PB5   ------> USB_OTG_HS_ULPI_D7
      PB4   ------> S_TIM3_CH1
      PD7   ------> SPDIFRX_IN0
-     PC12   ------> SDMMC1_CK
      PA15   ------> S_TIM2_CH1_ETR
      PE5   ------> DCMI_D6
      PE6   ------> DCMI_D7
@@ -358,8 +466,6 @@ static void MX_FMC_Init(void)
      PB9   ------> I2C1_SDA
      PB6   ------> QUADSPI_BK1_NCS
      PG11   ------> ETH_TX_EN
-     PC11   ------> SDMMC1_D3
-     PC10   ------> SDMMC1_D2
      PA12   ------> USB_OTG_FS_DP
      PI4   ------> SAI2_MCLK_A
      PG10   ------> SAI2_SD_B
@@ -369,13 +475,10 @@ static void MX_FMC_Init(void)
      PI7   ------> SAI2_FS_A
      PI6   ------> SAI2_SD_A
      PG9   ------> DCMI_VSYNC
-     PD2   ------> SDMMC1_CMD
      PA10   ------> USB_OTG_FS_ID
      PH14   ------> DCMI_D4
      PI0   ------> S_TIM5_CH4
-     PC9   ------> SDMMC1_D1
      PA8   ------> S_TIM1_CH1
-     PC8   ------> SDMMC1_D0
      PC7   ------> USART6_RX
      PH4   ------> USB_OTG_HS_ULPI_NXT
      PC6   ------> USART6_TX
@@ -509,16 +612,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF8_SPDIFRX;
   HAL_GPIO_Init(SPDIF_RX0_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : SDMMC_CK_Pin SDMMC_D3_Pin SDMMC_D2_Pin PC9 
-                           PC8 */
-  GPIO_InitStruct.Pin = SDMMC_CK_Pin|SDMMC_D3_Pin|SDMMC_D2_Pin|GPIO_PIN_9 
-                          |GPIO_PIN_8;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF12_SDMMC1;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
   /*Configure GPIO pin : ARDUINO_PWM_D9_Pin */
   GPIO_InitStruct.Pin = ARDUINO_PWM_D9_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -627,14 +720,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(OTG_FS_OverCurrent_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : SDMMC_D0_Pin */
-  GPIO_InitStruct.Pin = SDMMC_D0_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF12_SDMMC1;
-  HAL_GPIO_Init(SDMMC_D0_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : TP3_Pin NC2_Pin */
   GPIO_InitStruct.Pin = TP3_Pin|NC2_Pin;

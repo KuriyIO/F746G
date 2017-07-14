@@ -60,6 +60,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 
+DMA2D_HandleTypeDef hdma2d;
+
 LTDC_HandleTypeDef hltdc;
 
 RNG_HandleTypeDef hrng;
@@ -73,6 +75,7 @@ SDRAM_HandleTypeDef hsdram1;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
+#define FULL_TEST
 #define LCD_FRAME_BUFFER          SDRAM_BANK_ADDR
 
 FATFS SDFatFs; /* File system object for SD card logical drive */
@@ -80,7 +83,9 @@ FIL MyFile; /* File object */
 extern char SD_Path[4]; /* SD logical drive path */
 uint8_t sect[4096];
 uint32_t bytesread = 0;
-uint8_t* bmp1;
+uint8_t* bmp1 = (uint8_t *) 0xC00FF000;
+uint8_t* dma2d_in1 = (uint8_t *) 0xC017E800;
+uint8_t* dma2d_in2 = (uint8_t *) 0xC01FE000;
 
 /* USER CODE END PV */
 
@@ -93,6 +98,7 @@ static void MX_FMC_Init(void);
 static void MX_LTDC_Init(void);
 static void MX_RNG_Init(void);
 static void MX_SDMMC1_SD_Init(void);
+static void MX_DMA2D_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -100,56 +106,7 @@ static void MX_SDMMC1_SD_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-uint32_t OpenBMP(uint8_t *ptr, const char* fname)
-{
- uint32_t ind = 0, sz = 0, i1 = 0, ind1 = 0;
- static uint32_t bmp_addr;
- if(f_open(&MyFile, fname, FA_READ) != FR_OK)
- {
-   LCD_FillScreen(0xFFFF0000); //в случае неудачи окрасим экран в красный цвет
- }
- else
- {
-   if (f_read (&MyFile, sect, 30, (UINT *)bytesread) != FR_OK)
-   {
-     Error_Handler();
-   }
-   else
-   {
-     bmp_addr = (uint32_t)sect;
-     sz = *(uint16_t *) (bmp_addr + 2);
-     sz |= (*(uint16_t *) (bmp_addr + 4)) << 16;
 
-     /* Get bitmap data address offset */
-     ind = *(uint16_t *) (bmp_addr + 10);
-     ind |= (*(uint16_t *) (bmp_addr + 12)) << 16;
-     f_close (&MyFile);
-     f_open (&MyFile, fname, FA_READ);
-     ind=0;
-     do
-     {
-       if (sz < 4096)
-       {
-         i1 = sz;
-       }
-       else
-       {
-         i1 = 4096;
-       }
-       sz -= i1;
-       f_lseek(&MyFile,ind1);
-       f_read (&MyFile, sect, i1, (UINT *)&bytesread);
-
-       memcpy((void*)(bmp1+ind1), (void*)sect, i1);
-       ind1+=i1;
-     }
-     while (sz > 0);
-     f_close (&MyFile);
-   }
-   ind1=0;
- }
- return 0;
-}
 /* USER CODE END 0 */
 
 int main(void)
@@ -192,22 +149,28 @@ int main(void)
   MX_RNG_Init();
   MX_SDMMC1_SD_Init();
   MX_FATFS_Init();
+  MX_DMA2D_Init();
 
   /* USER CODE BEGIN 2 */
 
   SDRAM_Init(&hsdram1);
   HAL_LTDC_SetAddress(&hltdc,LCD_FRAME_BUFFER,0);
-
-#ifdef FULL_TEST
-  fmc_test(&huart1);
-  HAL_GPIO_WritePin(GPIOI, GPIO_PIN_1, GPIO_PIN_SET);
-#endif
+  LCD_FillScreen(0);
 
   if(f_mount(&SDFatFs, (TCHAR const*)SD_Path, 0) != FR_OK)
   {
-   LCD_FillScreen(0xFFFF0000); //в случае неудачи окрасим экран в красный цвет
-   Error_Handler();
+     LCD_FillScreen(0xFFFF0000); //в случае неудачи окрасим экран в красный цвет
+     Error_Handler();
   }
+
+#ifdef FULL_TEST
+  fmc_test(&huart1);
+  ltdc_test();
+  bitmap_test();
+  HAL_GPIO_WritePin(GPIOI, GPIO_PIN_1, GPIO_PIN_SET);
+#endif
+
+
 
   /* USER CODE END 2 */
 
@@ -219,20 +182,9 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
 #ifdef FULL_TEST
-	  ltdc_test();
+
 #endif
 
-	  bmp1 = (uint8_t *)0xC00FF000;
-	  char str1[20] = {0};
-
-	  for(int j=1;j<=10;j++)
-	  {
-	      sprintf(str1,"image%02d.bmp",j);
-	      OpenBMP((uint8_t *)bmp1,str1);
-	      LCD_DrawBitmap(0,0,(uint8_t *)bmp1);
-
-	      HAL_Delay(3000);
-	  }
   }
   /* USER CODE END 3 */
 
@@ -315,6 +267,39 @@ void SystemClock_Config(void)
 
   /* SysTick_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+}
+
+/* DMA2D init function */
+static void MX_DMA2D_Init(void)
+{
+
+  hdma2d.Instance = DMA2D;
+  hdma2d.Init.Mode = DMA2D_M2M_BLEND;
+  hdma2d.Init.ColorMode = DMA2D_OUTPUT_ARGB8888;
+  hdma2d.Init.OutputOffset = 0;
+  hdma2d.LayerCfg[1].InputOffset = 0;
+  hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_ARGB8888;
+  hdma2d.LayerCfg[1].AlphaMode = DMA2D_REPLACE_ALPHA;
+  hdma2d.LayerCfg[1].InputAlpha = 0;
+  hdma2d.LayerCfg[0].InputOffset = 0;
+  hdma2d.LayerCfg[0].InputColorMode = DMA2D_INPUT_ARGB8888;
+  hdma2d.LayerCfg[0].AlphaMode = DMA2D_REPLACE_ALPHA;
+  hdma2d.LayerCfg[0].InputAlpha = 0;
+  if (HAL_DMA2D_Init(&hdma2d) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  if (HAL_DMA2D_ConfigLayer(&hdma2d, 0) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  if (HAL_DMA2D_ConfigLayer(&hdma2d, 1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
 }
 
 /* LTDC init function */

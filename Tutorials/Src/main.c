@@ -167,6 +167,7 @@ int main(void)
   fmc_test(&huart1);
   ltdc_test();
   bitmap_test();
+  text_test();
   HAL_GPIO_WritePin(GPIOI, GPIO_PIN_1, GPIO_PIN_SET);
 #endif
 

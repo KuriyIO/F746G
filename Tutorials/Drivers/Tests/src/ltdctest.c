@@ -17,6 +17,26 @@ extern FIL MyFile; /* File object */
 
 extern uint32_t OpenBMP(uint8_t *ptr, const char* fname);
 
+void text_test(void)
+{
+	LCD_FillScreen(0);
+
+	LCD_SetFont(&Font24);
+	LCD_SetTextColor(LCD_COLOR_CYAN);
+	LCD_SetBackColor(LCD_COLOR_BLACK);
+	LCD_DisplayString(14, 100, (uint8_t *)"STM32 Left 24", LEFT_MODE);
+
+	LCD_SetFont(&Font20);
+	LCD_SetTextColor(LCD_COLOR_RED);
+	LCD_DisplayString(14, 130, (uint8_t *)"STM32 Center 20", CENTER_MODE);
+
+	LCD_SetFont(&Font16);
+	LCD_SetTextColor(LCD_COLOR_MAGENTA);
+	LCD_DisplayString(1, 160, (uint8_t *)"STM32 Right 16", RIGHT_MODE);
+
+	HAL_Delay(5000);
+}
+
 void bitmap_test(void)
 {
 	OpenBMP((uint8_t *)bmp1,"image01.bmp");
@@ -232,3 +252,5 @@ uint32_t OpenBMP(uint8_t *ptr, const char* fname)
  }
  return 0;
 }
+
+

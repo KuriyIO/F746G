@@ -53,14 +53,18 @@
 /* USER CODE BEGIN Includes */
 #include "SDRAM.h"
 #include "lcd.h"
+#include "ft5336.h"
 #include "string.h"
 #include "fmctest.h"
 #include "ltdctest.h"
+#include "tstest.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
 
 DMA2D_HandleTypeDef hdma2d;
+
+I2C_HandleTypeDef hi2c3;
 
 LTDC_HandleTypeDef hltdc;
 
@@ -86,6 +90,7 @@ uint32_t bytesread = 0;
 uint8_t* bmp1 = (uint8_t *) 0xC00FF000;
 uint8_t* dma2d_in1 = (uint8_t *) 0xC017E800;
 uint8_t* dma2d_in2 = (uint8_t *) 0xC01FE000;
+TS_StateTypeDef TS_State;
 
 /* USER CODE END PV */
 
@@ -99,6 +104,7 @@ static void MX_LTDC_Init(void);
 static void MX_RNG_Init(void);
 static void MX_SDMMC1_SD_Init(void);
 static void MX_DMA2D_Init(void);
+static void MX_I2C3_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -150,16 +156,19 @@ int main(void)
   MX_SDMMC1_SD_Init();
   MX_FATFS_Init();
   MX_DMA2D_Init();
+  MX_I2C3_Init();
 
   /* USER CODE BEGIN 2 */
 
   SDRAM_Init(&hsdram1);
   HAL_LTDC_SetAddress(&hltdc,LCD_FRAME_BUFFER,0);
   LCD_FillScreen(0);
+  HAL_Delay(50);
+  TouchInit();
 
   if(f_mount(&SDFatFs, (TCHAR const*)SD_Path, 0) != FR_OK)
   {
-     LCD_FillScreen(0xFFFF0000); //в случае неудачи окрасим экран в красный цвет
+     LCD_FillScreen(0xFFFF0000);
      Error_Handler();
   }
 
@@ -183,7 +192,7 @@ int main(void)
 
   /* USER CODE BEGIN 3 */
 #ifdef FULL_TEST
-
+	  ts_test();
 #endif
 
   }
@@ -243,7 +252,8 @@ void SystemClock_Config(void)
   }
 
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_LTDC|RCC_PERIPHCLK_USART1
-                              |RCC_PERIPHCLK_SDMMC1|RCC_PERIPHCLK_CLK48;
+                              |RCC_PERIPHCLK_I2C3|RCC_PERIPHCLK_SDMMC1
+                              |RCC_PERIPHCLK_CLK48;
   PeriphClkInitStruct.PLLSAI.PLLSAIN = 192;
   PeriphClkInitStruct.PLLSAI.PLLSAIR = 3;
   PeriphClkInitStruct.PLLSAI.PLLSAIQ = 2;
@@ -251,6 +261,7 @@ void SystemClock_Config(void)
   PeriphClkInitStruct.PLLSAIDivQ = 1;
   PeriphClkInitStruct.PLLSAIDivR = RCC_PLLSAIDIVR_4;
   PeriphClkInitStruct.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
+  PeriphClkInitStruct.I2c3ClockSelection = RCC_I2C3CLKSOURCE_PCLK1;
   PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48SOURCE_PLLSAIP;
   PeriphClkInitStruct.Sdmmc1ClockSelection = RCC_SDMMC1CLKSOURCE_CLK48;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
@@ -297,6 +308,40 @@ static void MX_DMA2D_Init(void)
   }
 
   if (HAL_DMA2D_ConfigLayer(&hdma2d, 1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
+/* I2C3 init function */
+static void MX_I2C3_Init(void)
+{
+
+  hi2c3.Instance = I2C3;
+  hi2c3.Init.Timing = 0x00C0EAFF;
+  hi2c3.Init.OwnAddress1 = 0;
+  hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c3.Init.OwnAddress2 = 0;
+  hi2c3.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
+  hi2c3.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c3.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c3) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+    /**Configure Analogue filter 
+    */
+  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c3, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+    /**Configure Digital filter 
+    */
+  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c3, 0) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -487,7 +532,6 @@ static void MX_FMC_Init(void)
      PA4   ------> DCMI_HSYNC
      PC4   ------> ETH_RXD0
      PD11   ------> QUADSPI_BK1_IO0
-     PH7   ------> I2C3_SCL
      PH9   ------> DCMI_D0
      PH11   ------> DCMI_D2
      PA2   ------> ETH_MDIO
@@ -496,7 +540,6 @@ static void MX_FMC_Init(void)
      PC5   ------> ETH_RXD1
      PB10   ------> USB_OTG_HS_ULPI_D3
      PH6   ------> S_TIM12_CH1
-     PH8   ------> I2C3_SDA
      PH10   ------> DCMI_D1
      PA3   ------> USB_OTG_HS_ULPI_D0
      PA7   ------> ETH_CRS_DV
@@ -849,14 +892,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.Alternate = GPIO_AF13_DCMI;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : LCD_SCL_Pin LCD_SDA_Pin */
-  GPIO_InitStruct.Pin = LCD_SCL_Pin|LCD_SDA_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF4_I2C3;
-  HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 
   /*Configure GPIO pins : ULPI_CLK_Pin ULPI_D0_Pin */
   GPIO_InitStruct.Pin = ULPI_CLK_Pin|ULPI_D0_Pin;

@@ -51,7 +51,8 @@
   /* Includes ------------------------------------------------------------------*/
 
 /* USER CODE BEGIN Includes */
-
+#include "GUI.h"
+#include "WM.h"
 /* USER CODE END Includes */
 
 /* Private define ------------------------------------------------------------*/

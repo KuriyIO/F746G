@@ -51,6 +51,13 @@
 									<listOptionValue builtIn="false" value="../Middlewares/Third_Party/FatFs/src/drivers"/>
 									<listOptionValue builtIn="false" value="../Drivers/Fonts"/>
 									<listOptionValue builtIn="false" value="../Drivers/Touch"/>
+									<listOptionValue builtIn="false" value="../Middlewares/STemWin"/>
+									<listOptionValue builtIn="false" value="../Middlewares/STemWin/lib"/>
+									<listOptionValue builtIn="false" value="../Middlewares/STemWin/Config"/>
+									<listOptionValue builtIn="false" value="../Middlewares/STemWin/pages"/>
+									<listOptionValue builtIn="false" value="../Middlewares/STemWin/Config/inc"/>
+									<listOptionValue builtIn="false" value="../Middlewares/STemWin/Config/src"/>
+									<listOptionValue builtIn="false" value="../Middlewares/STemWin/inc"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.372674912" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__weak=&quot;__attribute__((weak))&quot;"/>
@@ -68,8 +75,12 @@
 							</tool>
 							<tool id="fr.ac6.managedbuild.tool.gnu.cross.c.linker.605884626" name="MCU GCC Linker" superClass="fr.ac6.managedbuild.tool.gnu.cross.c.linker">
 								<option id="fr.ac6.managedbuild.tool.gnu.cross.c.linker.script.1964950989" name="Linker Script (-T)" superClass="fr.ac6.managedbuild.tool.gnu.cross.c.linker.script" value="../STM32F746NGHx_FLASH.ld" valueType="string"/>
-								<option id="gnu.c.link.option.libs.1188886697" name="Libraries (-l)" superClass="gnu.c.link.option.libs"/>
-								<option id="gnu.c.link.option.paths.298572669" name="Library search path (-L)" superClass="gnu.c.link.option.paths"/>
+								<option id="gnu.c.link.option.libs.1188886697" name="Libraries (-l)" superClass="gnu.c.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value=":libSTemWin532.a"/>
+								</option>
+								<option id="gnu.c.link.option.paths.298572669" name="Library search path (-L)" superClass="gnu.c.link.option.paths" valueType="libPaths">
+									<listOptionValue builtIn="false" value="../Middlewares/STemWin/lib"/>
+								</option>
 								<option id="gnu.c.link.option.ldflags.2093666435" name="Linker flags" superClass="gnu.c.link.option.ldflags" value="-specs=nosys.specs -specs=nano.specs" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.1210709248" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>

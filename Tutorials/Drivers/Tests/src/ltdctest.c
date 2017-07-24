@@ -2,7 +2,7 @@
 #include "fatfs.h"
 #include "lcd.h"
 
-#define LCD_FRAME_BUFFER          ((uint32_t)0xC0000000)
+#define LTDC_FRAME_BUFFER          ((uint32_t)0xC0000000)
 
 extern RNG_HandleTypeDef hrng;
 extern DMA2D_HandleTypeDef hdma2d;
@@ -19,20 +19,20 @@ extern uint32_t OpenBMP(uint8_t *ptr, const char* fname);
 
 void text_test(void)
 {
-	LCD_FillScreen(0);
+	LTDC_FillScreen(0);
 
-	LCD_SetFont(&Font24);
-	LCD_SetTextColor(LCD_COLOR_CYAN);
-	LCD_SetBackColor(LCD_COLOR_BLACK);
-	LCD_DisplayString(14, 100, (uint8_t *)"STM32 Left 24", LEFT_MODE);
+	LTDC_SetFont(&Font24);
+	LTDC_SetTextColor(LCD_COLOR_CYAN);
+	LTDC_SetBackColor(LCD_COLOR_BLACK);
+	LTDC_DisplayString(14, 100, (uint8_t *)"STM32 Left 24", LEFT_MODE);
 
-	LCD_SetFont(&Font20);
-	LCD_SetTextColor(LCD_COLOR_RED);
-	LCD_DisplayString(14, 130, (uint8_t *)"STM32 Center 20", CENTER_MODE);
+	LTDC_SetFont(&Font20);
+	LTDC_SetTextColor(LCD_COLOR_RED);
+	LTDC_DisplayString(14, 130, (uint8_t *)"STM32 Center 20", CENTER_MODE);
 
-	LCD_SetFont(&Font16);
-	LCD_SetTextColor(LCD_COLOR_MAGENTA);
-	LCD_DisplayString(1, 160, (uint8_t *)"STM32 Right 16", RIGHT_MODE);
+	LTDC_SetFont(&Font16);
+	LTDC_SetTextColor(LCD_COLOR_MAGENTA);
+	LTDC_DisplayString(1, 160, (uint8_t *)"STM32 Right 16", RIGHT_MODE);
 
 	HAL_Delay(5000);
 }
@@ -40,7 +40,7 @@ void text_test(void)
 void bitmap_test(void)
 {
 	OpenBMP((uint8_t *)bmp1,"image01.bmp");
-	LCD_DrawBitmapToMem(0,0,(uint8_t *)bmp1,(uint8_t *)dma2d_in2);
+	LTDC_DrawBitmapToMem(0,0,(uint8_t *)bmp1,(uint8_t *)dma2d_in2);
 
 	char str1[20] = {0};
 
@@ -50,9 +50,9 @@ void bitmap_test(void)
 		OpenBMP((uint8_t *)bmp1,str1);
 
 		if(j%2!=0)
-			LCD_DrawBitmapToMem(0,0,(uint8_t *)bmp1,(uint8_t *)dma2d_in1);
+			LTDC_DrawBitmapToMem(0,0,(uint8_t *)bmp1,(uint8_t *)dma2d_in1);
 		else
-			LCD_DrawBitmapToMem(0,0,(uint8_t *)bmp1,(uint8_t *)dma2d_in2);
+			LTDC_DrawBitmapToMem(0,0,(uint8_t *)bmp1,(uint8_t *)dma2d_in2);
 
 		for(int i=0;i<=255;i++)
 		{
@@ -60,10 +60,10 @@ void bitmap_test(void)
 
 			if(j%2!=0)
 				HAL_DMA2D_BlendingStart_IT(&hdma2d, (uint32_t) dma2d_in1,
-										   (uint32_t) dma2d_in2, LCD_FRAME_BUFFER, 480, 272);
+										   (uint32_t) dma2d_in2, LTDC_FRAME_BUFFER, 480, 272);
 			else
 				HAL_DMA2D_BlendingStart_IT(&hdma2d, (uint32_t) dma2d_in2,
-										   (uint32_t) dma2d_in1, LCD_FRAME_BUFFER, 480, 272);
+										   (uint32_t) dma2d_in1, LTDC_FRAME_BUFFER, 480, 272);
 			HAL_Delay(10);
 		}
 		HAL_Delay(3000);
@@ -72,20 +72,20 @@ void bitmap_test(void)
 
 void ltdc_test(void)
 {
-	LCD_FillScreen(0);
+	LTDC_FillScreen(0);
 
 	for(int i=0;i<100;i++)
 	{
-		LCD_FillScreen(HAL_RNG_GetRandomNumber(&hrng));
+		LTDC_FillScreen(HAL_RNG_GetRandomNumber(&hrng));
 		HAL_Delay(100);
 	}
 
-	LCD_FillScreen(0);
+	LTDC_FillScreen(0);
 	HAL_Delay(1000);
 
 	for(int i=0;i<1000;i++)
 	{
-		LCD_FillRectangle(HAL_RNG_GetRandomNumber(&hrng)%480,
+		LTDC_FillRectangle(HAL_RNG_GetRandomNumber(&hrng)%480,
 						  HAL_RNG_GetRandomNumber(&hrng)%272,
 						  HAL_RNG_GetRandomNumber(&hrng)%480,
 						  HAL_RNG_GetRandomNumber(&hrng)%272,
@@ -94,42 +94,42 @@ void ltdc_test(void)
 		HAL_Delay(10);
 	}
 
-	LCD_FillScreen(0);
+	LTDC_FillScreen(0);
 	HAL_Delay(1000);
 
 	for(int i=0;i<10000;i++)
 	{
-		LCD_DrawPixel(HAL_RNG_GetRandomNumber(&hrng)%480,
+		LTDC_DrawPixel(HAL_RNG_GetRandomNumber(&hrng)%480,
 					  HAL_RNG_GetRandomNumber(&hrng)%272,
 					  HAL_RNG_GetRandomNumber(&hrng));
 
 		HAL_Delay(1);
 	}
 
-	LCD_FillScreen(0);
+	LTDC_FillScreen(0);
 	HAL_Delay(1000);
 
 	for(int i=0;i<10000;i++)
 	{
 		for(int j=0;j<100;j++)
 		{
-			LCD_DrawPixel(HAL_RNG_GetRandomNumber(&hrng)%480,
+			LTDC_DrawPixel(HAL_RNG_GetRandomNumber(&hrng)%480,
 						  HAL_RNG_GetRandomNumber(&hrng)%272,0);
 		}
 
-		LCD_DrawPixel(HAL_RNG_GetRandomNumber(&hrng)%480,
+		LTDC_DrawPixel(HAL_RNG_GetRandomNumber(&hrng)%480,
 					  HAL_RNG_GetRandomNumber(&hrng)%272,
 					  HAL_RNG_GetRandomNumber(&hrng));
 
 		HAL_Delay(1);
 	}
 
-	LCD_FillScreen(0);
+	LTDC_FillScreen(0);
 	HAL_Delay(1000);
 
 	for(int i=0;i<1000;i++)
 	{
-		LCD_DrawLine(HAL_RNG_GetRandomNumber(&hrng)%480,
+		LTDC_DrawLine(HAL_RNG_GetRandomNumber(&hrng)%480,
 					 HAL_RNG_GetRandomNumber(&hrng)%272,
 					 HAL_RNG_GetRandomNumber(&hrng)%480,
 					 HAL_RNG_GetRandomNumber(&hrng)%272,
@@ -138,26 +138,26 @@ void ltdc_test(void)
 		HAL_Delay(10);
 	}
 
-	LCD_FillScreen(0);
+	LTDC_FillScreen(0);
 	HAL_Delay(1000);
 }
 
 void ltdc_test_565(void)
 {
-	LCD_FillScreen_565(0);
+	LTDC_FillScreen_565(0);
 
 	for(int i=0;i<100;i++)
 	{
-		LCD_FillScreen_565((uint16_t)HAL_RNG_GetRandomNumber(&hrng));
+		LTDC_FillScreen_565((uint16_t)HAL_RNG_GetRandomNumber(&hrng));
 		HAL_Delay(100);
 	}
 
-	LCD_FillScreen_565(0);
+	LTDC_FillScreen_565(0);
 	HAL_Delay(1000);
 
 	for(int i=0;i<1000;i++)
 	{
-		LCD_FillRectangle_565(HAL_RNG_GetRandomNumber(&hrng)%480,
+		LTDC_FillRectangle_565(HAL_RNG_GetRandomNumber(&hrng)%480,
 						  HAL_RNG_GetRandomNumber(&hrng)%272,
 						  HAL_RNG_GetRandomNumber(&hrng)%480,
 						  HAL_RNG_GetRandomNumber(&hrng)%272,
@@ -166,30 +166,30 @@ void ltdc_test_565(void)
 		HAL_Delay(10);
 	}
 
-	LCD_FillScreen_565(0);
+	LTDC_FillScreen_565(0);
 	HAL_Delay(1000);
 
 	for(int i=0;i<10000;i++)
 	{
 		for(int j=0;j<100;j++)
 		{
-			LCD_DrawPixel_565(HAL_RNG_GetRandomNumber(&hrng)%480,
+			LTDC_DrawPixel_565(HAL_RNG_GetRandomNumber(&hrng)%480,
 						  HAL_RNG_GetRandomNumber(&hrng)%272,0);
 		}
 
-		LCD_DrawPixel_565(HAL_RNG_GetRandomNumber(&hrng)%480,
+		LTDC_DrawPixel_565(HAL_RNG_GetRandomNumber(&hrng)%480,
 					  HAL_RNG_GetRandomNumber(&hrng)%272,
 					  (uint16_t)HAL_RNG_GetRandomNumber(&hrng));
 
 		HAL_Delay(1);
 	}
 
-	LCD_FillScreen_565(0);
+	LTDC_FillScreen_565(0);
 	HAL_Delay(1000);
 
 	for(int i=0;i<1000;i++)
 	{
-		LCD_DrawLine_565(HAL_RNG_GetRandomNumber(&hrng)%480,
+		LTDC_DrawLine_565(HAL_RNG_GetRandomNumber(&hrng)%480,
 					 HAL_RNG_GetRandomNumber(&hrng)%272,
 					 HAL_RNG_GetRandomNumber(&hrng)%480,
 					 HAL_RNG_GetRandomNumber(&hrng)%272,
@@ -198,7 +198,7 @@ void ltdc_test_565(void)
 		HAL_Delay(10);
 	}
 
-	LCD_FillScreen_565(0);
+	LTDC_FillScreen_565(0);
 	HAL_Delay(1000);
 }
 
@@ -208,7 +208,7 @@ uint32_t OpenBMP(uint8_t *ptr, const char* fname)
  static uint32_t bmp_addr;
  if(f_open(&MyFile, fname, FA_READ) != FR_OK)
  {
-   LCD_FillScreen(0xFFFF0000); //в случае неудачи окрасим экран в красный цвет
+   LTDC_FillScreen(0xFFFF0000); //в случае неудачи окрасим экран в красный цвет
  }
  else
  {

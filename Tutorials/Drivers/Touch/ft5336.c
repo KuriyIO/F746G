@@ -9,7 +9,7 @@ static uint8_t tsOrientation;
 
 void TouchError(char* msg)
 {
-	LCD_FillScreen(LCD_COLOR_RED);
+	LTDC_FillScreen(LCD_COLOR_RED);
 	HAL_UART_Transmit(&huart1, (uint8_t*)msg,strlen(msg),0x1000);
 	HAL_Delay(1000);
 }

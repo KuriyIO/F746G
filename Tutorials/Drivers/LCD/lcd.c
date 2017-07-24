@@ -7,10 +7,10 @@ extern DMA2D_HandleTypeDef hdma2d;
 uint16_t X_SIZE = 480;
 uint16_t Y_SIZE = 272;
 
-LCD_DrawPropTypeDef lcdprop;
+LTDC_DrawPropTypeDef LTDCprop;
 const uint8_t *ch;
 
-void LCD_FillScreen(uint32_t color)
+void LTDC_FillScreen(uint32_t color)
 {
 	hdma2d.Init.Mode = DMA2D_R2M;
 	hdma2d.Init.OutputOffset = 0;
@@ -24,7 +24,7 @@ void LCD_FillScreen(uint32_t color)
 	}
 }
 
-void LCD_FillRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color)
+void LTDC_FillRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color)
 {
 	if(x1>x2) swap(x1,x2);
 	if(y1>y2) swap(y1,y2);
@@ -43,12 +43,12 @@ void LCD_FillRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint3
 	}
 }
 
-void LCD_DrawPixel(uint16_t Xpos, uint16_t Ypos, uint32_t color)
+void LTDC_DrawPixel(uint16_t Xpos, uint16_t Ypos, uint32_t color)
 {
 	*(__IO uint32_t*)(hltdc.LayerCfg[0].FBStartAdress+((sizeof(color))*(Ypos*hltdc.LayerCfg[0].ImageWidth+Xpos))) = color;
 }
 
-void LCD_DrawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color)
+void LTDC_DrawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color)
 {
 	int steep = abs(y2-y1)>abs(x2-x1);
 
@@ -79,9 +79,9 @@ void LCD_DrawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t c
 	for(;x1<=x2;x1++)
 	{
 		if(steep)
-			LCD_DrawPixel(y1,x1,color);
+			LTDC_DrawPixel(y1,x1,color);
 		else
-			LCD_DrawPixel(x1,y1,color);
+			LTDC_DrawPixel(x1,y1,color);
 
 		err-=dy;
 
@@ -93,7 +93,7 @@ void LCD_DrawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t c
 	}
 }
 
-void LCD_FillScreen_565(uint16_t color)
+void LTDC_FillScreen_565(uint16_t color)
 {
 	uint32_t i;
 	uint32_t n = hltdc.LayerCfg[0].ImageHeight*hltdc.LayerCfg[0].ImageWidth;
@@ -103,7 +103,7 @@ void LCD_FillScreen_565(uint16_t color)
 	}
 }
 
-void LCD_FillRectangle_565(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color)
+void LTDC_FillRectangle_565(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color)
 {
 	uint32_t xpos,ypos;
 	if(x1>x2) swap(x1,x2);
@@ -117,12 +117,12 @@ void LCD_FillRectangle_565(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, u
 	}
 }
 
-void LCD_DrawPixel_565(uint16_t Xpos, uint16_t Ypos, uint16_t color)
+void LTDC_DrawPixel_565(uint16_t Xpos, uint16_t Ypos, uint16_t color)
 {
 	*(__IO uint16_t*)(hltdc.LayerCfg[0].FBStartAdress+(2*(Ypos*hltdc.LayerCfg[0].ImageWidth+Xpos)))= color;
 }
 
-void LCD_DrawLine_565(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color)
+void LTDC_DrawLine_565(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color)
 {
 	int steep = abs(y2-y1)>abs(x2-x1);
 	if(steep)
@@ -144,8 +144,8 @@ void LCD_DrawLine_565(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16
 	else ystep=-1;
 	for(;x1<=x2;x1++)
 	{
-		if(steep) LCD_DrawPixel_565(y1,x1,color);
-		else LCD_DrawPixel_565(x1,y1,color);
+		if(steep) LTDC_DrawPixel_565(y1,x1,color);
+		else LTDC_DrawPixel_565(x1,y1,color);
 		err-=dy;
 		if(err<0)
 		{
@@ -155,7 +155,7 @@ void LCD_DrawLine_565(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16
 	}
 }
 
-void LCD_DrawBitmap(uint32_t Xpos, uint32_t Ypos, uint8_t *pbmp)
+void LTDC_DrawBitmap(uint32_t Xpos, uint32_t Ypos, uint8_t *pbmp)
 {
 	uint32_t index = 0, width = 0, height = 0, bit_pixel = 0;
 	uint32_t address;
@@ -182,11 +182,11 @@ void LCD_DrawBitmap(uint32_t Xpos, uint32_t Ypos, uint8_t *pbmp)
 	pbmp += (index + (width * (height-1) * (bit_pixel/8)));
 	if((bit_pixel/8) == 4)
 	{
-		LCD_FillScreen(0xFFFF0000);
+		LTDC_FillScreen(0xFFFF0000);
 	}
 	else if((bit_pixel/8) == 2)
 	{
-		LCD_FillScreen(0xFF00FF00);
+		LTDC_FillScreen(0xFF00FF00);
 	}
 	else
 	{
@@ -236,7 +236,7 @@ void LCD_DrawBitmap(uint32_t Xpos, uint32_t Ypos, uint8_t *pbmp)
 	}
 }
 
-void LCD_DrawBitmapToMem(uint32_t Xpos, uint32_t Ypos, uint8_t *pbmp, uint8_t *pdst)
+void LTDC_DrawBitmapToMem(uint32_t Xpos, uint32_t Ypos, uint8_t *pbmp, uint8_t *pdst)
 {
 	uint32_t index = 0, width = 0, height = 0, bit_pixel = 0;
 
@@ -259,11 +259,11 @@ void LCD_DrawBitmapToMem(uint32_t Xpos, uint32_t Ypos, uint8_t *pbmp, uint8_t *p
 	pbmp += (index + (width * (height-1) * (bit_pixel/8)));
 	if((bit_pixel/8) == 4)
 	{
-		LCD_FillScreen(0xFFFF0000);
+		LTDC_FillScreen(0xFFFF0000);
 	}
 	else if((bit_pixel/8) == 2)
 	{
-		LCD_FillScreen(0xFF00FF00);
+		LTDC_FillScreen(0xFF00FF00);
 	}
 	else
 	{
@@ -323,27 +323,27 @@ void DMA2D_LayersAlphaReconfig(uint32_t alpha1, uint32_t alpha2)
 
 void FTF_FonsIni(void)
 {
-	lcdprop.BackColor=LCD_COLOR_BLACK;
-	lcdprop.TextColor=LCD_COLOR_GREEN;
-	lcdprop.pFont=&Font16;
+	LTDCprop.BackColor=LCD_COLOR_BLACK;
+	LTDCprop.TextColor=LCD_COLOR_GREEN;
+	LTDCprop.pFont=&Font16;
 }
 //----------------------------------------
-void LCD_SetFont(sFONT *fonts)
+void LTDC_SetFont(sFONT *fonts)
 {
-	lcdprop.pFont=fonts;
+	LTDCprop.pFont=fonts;
 }
 //----------------------------------------
-void LCD_SetTextColor(uint32_t color)
+void LTDC_SetTextColor(uint32_t color)
 {
-	lcdprop.TextColor=color;
+	LTDCprop.TextColor=color;
 }
 //----------------------------------------
-void LCD_SetBackColor(uint32_t color)
+void LTDC_SetBackColor(uint32_t color)
 {
-	lcdprop.BackColor=color;
+	LTDCprop.BackColor=color;
 }
 //----------------------------------------
-void LCD_DrawChar(uint16_t x, uint16_t y, const uint8_t c)
+void LTDC_DrawChar(uint16_t x, uint16_t y, const uint8_t c)
 {
 
 	uint32_t i=0, j=0;
@@ -351,10 +351,10 @@ void LCD_DrawChar(uint16_t x, uint16_t y, const uint8_t c)
 	uint8_t offset;
 	uint8_t *pchar;
 	uint32_t line;
-	ch = &lcdprop.pFont->table[(c-' ') * lcdprop.pFont->Height *
-		((lcdprop.pFont->Width +7) / 8)];
-	height = lcdprop.pFont->Height;
-	width = lcdprop.pFont->Width;
+	ch = &LTDCprop.pFont->table[(c-' ') * LTDCprop.pFont->Height *
+		((LTDCprop.pFont->Width +7) / 8)];
+	height = LTDCprop.pFont->Height;
+	width = LTDCprop.pFont->Width;
 	offset = 8 * ((width + 7)/8) - width;
 	for(i = 0;i < height; i++)
 	{
@@ -376,18 +376,18 @@ void LCD_DrawChar(uint16_t x, uint16_t y, const uint8_t c)
 		{
 			if(line & (1 << (width - j + offset -1)))
 			{
-				LCD_DrawPixel((x+j), y, lcdprop.TextColor);
+				LTDC_DrawPixel((x+j), y, LTDCprop.TextColor);
 			}
 			else
 			{
-				LCD_DrawPixel((x+j), y, lcdprop.BackColor);
+				LTDC_DrawPixel((x+j), y, LTDCprop.BackColor);
 			}
 		}
 		y++;
 	}
 }
 //----------------------------------------
-void LCD_DisplayString(uint16_t Xpos, uint16_t Ypos, const uint8_t *Text,
+void LTDC_DisplayString(uint16_t Xpos, uint16_t Ypos, uint8_t *Text,
 		Text_AlignModeTypedef Mode)
 
 {
@@ -395,12 +395,12 @@ void LCD_DisplayString(uint16_t Xpos, uint16_t Ypos, const uint8_t *Text,
 	uint32_t size = 0, xsize = 0;
 	uint8_t *ptr = Text;
 	while(*ptr++) size++ ;
-	xsize = (X_SIZE/lcdprop.pFont->Width);
+	xsize = (X_SIZE/LTDCprop.pFont->Width);
 	switch (Mode)
 	{
 		case CENTER_MODE:
 		{
-			ref_column = Xpos + ((xsize-size) * lcdprop.pFont->Width) / 2;
+			ref_column = Xpos + ((xsize-size) * LTDCprop.pFont->Width) / 2;
 			break;
 		}
 		case LEFT_MODE:
@@ -410,7 +410,7 @@ void LCD_DisplayString(uint16_t Xpos, uint16_t Ypos, const uint8_t *Text,
 		}
 		case RIGHT_MODE:
 		{
-			ref_column = Xpos + ((xsize-size) * lcdprop.pFont->Width);
+			ref_column = Xpos + ((xsize-size) * LTDCprop.pFont->Width);
 			break;
 		}
 		default:
@@ -423,11 +423,11 @@ void LCD_DisplayString(uint16_t Xpos, uint16_t Ypos, const uint8_t *Text,
 	{
 		ref_column = 1;
 	}
-	while ((*Text != 0) & (((X_SIZE - (i*lcdprop.pFont->Width)) & 0xFFFF) >=
-			lcdprop.pFont->Width))
+	while ((*Text != 0) & (((X_SIZE - (i*LTDCprop.pFont->Width)) & 0xFFFF) >=
+			LTDCprop.pFont->Width))
 	{
-		LCD_DrawChar(ref_column, Ypos, *Text);
-		ref_column += lcdprop.pFont->Width;
+		LTDC_DrawChar(ref_column, Ypos, *Text);
+		ref_column += LTDCprop.pFont->Width;
 		Text++;
 		i++;
 	}

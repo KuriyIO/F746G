@@ -54,6 +54,7 @@
 #include "SDRAM.h"
 #include "lcd.h"
 #include "ft5336.h"
+#include "GUI.h"
 #include "string.h"
 #include "fmctest.h"
 #include "ltdctest.h"
@@ -62,15 +63,21 @@
 
 /* Private variables ---------------------------------------------------------*/
 
+CRC_HandleTypeDef hcrc;
+
 DMA2D_HandleTypeDef hdma2d;
 
 I2C_HandleTypeDef hi2c3;
+DMA_HandleTypeDef hdma_i2c3_rx;
+DMA_HandleTypeDef hdma_i2c3_tx;
 
 LTDC_HandleTypeDef hltdc;
 
 RNG_HandleTypeDef hrng;
 
 SD_HandleTypeDef hsd1;
+
+TIM_HandleTypeDef htim6;
 
 UART_HandleTypeDef huart1;
 
@@ -79,7 +86,7 @@ SDRAM_HandleTypeDef hsdram1;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
-#define FULL_TEST
+//#define FULL_TEST
 #define LCD_FRAME_BUFFER          SDRAM_BANK_ADDR
 
 FATFS SDFatFs; /* File system object for SD card logical drive */
@@ -98,6 +105,7 @@ TS_StateTypeDef TS_State;
 void SystemClock_Config(void);
 static void MPU_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_FMC_Init(void);
 static void MX_LTDC_Init(void);
@@ -105,6 +113,8 @@ static void MX_RNG_Init(void);
 static void MX_SDMMC1_SD_Init(void);
 static void MX_DMA2D_Init(void);
 static void MX_I2C3_Init(void);
+static void MX_CRC_Init(void);
+static void MX_TIM6_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -149,6 +159,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART1_UART_Init();
   MX_FMC_Init();
   MX_LTDC_Init();
@@ -157,18 +168,30 @@ int main(void)
   MX_FATFS_Init();
   MX_DMA2D_Init();
   MX_I2C3_Init();
+  MX_CRC_Init();
+  MX_TIM6_Init();
 
   /* USER CODE BEGIN 2 */
 
   SDRAM_Init(&hsdram1);
   HAL_LTDC_SetAddress(&hltdc,LCD_FRAME_BUFFER,0);
-  LCD_FillScreen(0);
+  LTDC_FillScreen(0);
   HAL_Delay(50);
   TouchInit();
 
+  __HAL_RCC_CRC_CLK_ENABLE();
+  GUI_Init();
+  GUI_SetBkColor(GUI_DARKBLUE);
+  GUI_Clear();
+
+  GUI_SetFont(&GUI_Font32B_1);
+  GUI_SetTextAlign(GUI_TA_CENTER);
+  GUI_SetColor(GUI_ORANGE);
+  GUI_DispStringAt("Hello STemWin!!!", 240, 120);
+
   if(f_mount(&SDFatFs, (TCHAR const*)SD_Path, 0) != FR_OK)
   {
-     LCD_FillScreen(0xFFFF0000);
+     LTDC_FillScreen(0xFFFF0000);
      Error_Handler();
   }
 
@@ -281,28 +304,36 @@ void SystemClock_Config(void)
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
+/* CRC init function */
+static void MX_CRC_Init(void)
+{
+
+  hcrc.Instance = CRC;
+  hcrc.Init.DefaultPolynomialUse = DEFAULT_POLYNOMIAL_ENABLE;
+  hcrc.Init.DefaultInitValueUse = DEFAULT_INIT_VALUE_ENABLE;
+  hcrc.Init.InputDataInversionMode = CRC_INPUTDATA_INVERSION_NONE;
+  hcrc.Init.OutputDataInversionMode = CRC_OUTPUTDATA_INVERSION_DISABLE;
+  hcrc.InputDataFormat = CRC_INPUTDATA_FORMAT_BYTES;
+  if (HAL_CRC_Init(&hcrc) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
 /* DMA2D init function */
 static void MX_DMA2D_Init(void)
 {
 
   hdma2d.Instance = DMA2D;
-  hdma2d.Init.Mode = DMA2D_M2M_BLEND;
+  hdma2d.Init.Mode = DMA2D_M2M;
   hdma2d.Init.ColorMode = DMA2D_OUTPUT_ARGB8888;
   hdma2d.Init.OutputOffset = 0;
   hdma2d.LayerCfg[1].InputOffset = 0;
   hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_ARGB8888;
-  hdma2d.LayerCfg[1].AlphaMode = DMA2D_REPLACE_ALPHA;
+  hdma2d.LayerCfg[1].AlphaMode = DMA2D_NO_MODIF_ALPHA;
   hdma2d.LayerCfg[1].InputAlpha = 0;
-  hdma2d.LayerCfg[0].InputOffset = 0;
-  hdma2d.LayerCfg[0].InputColorMode = DMA2D_INPUT_ARGB8888;
-  hdma2d.LayerCfg[0].AlphaMode = DMA2D_REPLACE_ALPHA;
-  hdma2d.LayerCfg[0].InputAlpha = 0;
   if (HAL_DMA2D_Init(&hdma2d) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-  if (HAL_DMA2D_ConfigLayer(&hdma2d, 0) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -353,6 +384,7 @@ static void MX_LTDC_Init(void)
 {
 
   LTDC_LayerCfgTypeDef pLayerCfg;
+  LTDC_LayerCfgTypeDef pLayerCfg1;
 
   hltdc.Instance = LTDC;
   hltdc.Init.HSPolarity = LTDC_HSPOLARITY_AL;
@@ -382,8 +414,8 @@ static void MX_LTDC_Init(void)
   pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_ARGB8888;
   pLayerCfg.Alpha = 255;
   pLayerCfg.Alpha0 = 0;
-  pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_CA;
-  pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_CA;
+  pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_PAxCA;
+  pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_PAxCA;
   pLayerCfg.FBStartAdress = 0;
   pLayerCfg.ImageWidth = 480;
   pLayerCfg.ImageHeight = 272;
@@ -391,6 +423,26 @@ static void MX_LTDC_Init(void)
   pLayerCfg.Backcolor.Green = 0;
   pLayerCfg.Backcolor.Red = 0;
   if (HAL_LTDC_ConfigLayer(&hltdc, &pLayerCfg, 0) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  pLayerCfg1.WindowX0 = 0;
+  pLayerCfg1.WindowX1 = 480;
+  pLayerCfg1.WindowY0 = 0;
+  pLayerCfg1.WindowY1 = 272;
+  pLayerCfg1.PixelFormat = LTDC_PIXEL_FORMAT_ARGB1555;
+  pLayerCfg1.Alpha = 0;
+  pLayerCfg1.Alpha0 = 0;
+  pLayerCfg1.BlendingFactor1 = LTDC_BLENDING_FACTOR1_PAxCA;
+  pLayerCfg1.BlendingFactor2 = LTDC_BLENDING_FACTOR2_PAxCA;
+  pLayerCfg1.FBStartAdress = 0;
+  pLayerCfg1.ImageWidth = 480;
+  pLayerCfg1.ImageHeight = 272;
+  pLayerCfg1.Backcolor.Blue = 0;
+  pLayerCfg1.Backcolor.Green = 0;
+  pLayerCfg1.Backcolor.Red = 0;
+  if (HAL_LTDC_ConfigLayer(&hltdc, &pLayerCfg1, 1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -423,6 +475,31 @@ static void MX_SDMMC1_SD_Init(void)
 
 }
 
+/* TIM6 init function */
+static void MX_TIM6_Init(void)
+{
+
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim6.Instance = TIM6;
+  htim6.Init.Prescaler = 10000;
+  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim6.Init.Period = 200;
+  htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_ENABLE;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
 /* USART1 init function */
 static void MX_USART1_UART_Init(void)
 {
@@ -443,6 +520,24 @@ static void MX_USART1_UART_Init(void)
   }
 
 }
+
+/** 
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void) 
+{
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Stream2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
+  /* DMA1_Stream4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
+
+}
 /* FMC initialization function */
 static void MX_FMC_Init(void)
 {
@@ -456,7 +551,7 @@ static void MX_FMC_Init(void)
   hsdram1.Init.ColumnBitsNumber = FMC_SDRAM_COLUMN_BITS_NUM_8;
   hsdram1.Init.RowBitsNumber = FMC_SDRAM_ROW_BITS_NUM_12;
   hsdram1.Init.MemoryDataWidth = FMC_SDRAM_MEM_BUS_WIDTH_16;
-  hsdram1.Init.InternalBankNumber = FMC_SDRAM_INTERN_BANKS_NUM_2;
+  hsdram1.Init.InternalBankNumber = FMC_SDRAM_INTERN_BANKS_NUM_4;
   hsdram1.Init.CASLatency = FMC_SDRAM_CAS_LATENCY_2;
   hsdram1.Init.WriteProtection = FMC_SDRAM_WRITE_PROTECTION_DISABLE;
   hsdram1.Init.SDClockPeriod = FMC_SDRAM_CLOCK_PERIOD_2;
@@ -464,7 +559,7 @@ static void MX_FMC_Init(void)
   hsdram1.Init.ReadPipeDelay = FMC_SDRAM_RPIPE_DELAY_0;
   /* SdramTiming */
   SdramTiming.LoadToActiveDelay = 2;
-  SdramTiming.ExitSelfRefreshDelay = 6;
+  SdramTiming.ExitSelfRefreshDelay = 7;
   SdramTiming.SelfRefreshTime = 4;
   SdramTiming.RowCycleDelay = 6;
   SdramTiming.WriteRecoveryTime = 2;
@@ -980,7 +1075,7 @@ void MPU_Config(void)
   MPU_InitStruct.Enable = MPU_REGION_ENABLE;
   MPU_InitStruct.Number = MPU_REGION_NUMBER0;
   MPU_InitStruct.BaseAddress = 0xC0000000;
-  MPU_InitStruct.Size = MPU_REGION_SIZE_4MB;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_8MB;
   MPU_InitStruct.SubRegionDisable = 0x0;
   MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
   MPU_InitStruct.AccessPermission = MPU_REGION_FULL_ACCESS;

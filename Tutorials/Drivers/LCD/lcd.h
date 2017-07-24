@@ -1,5 +1,5 @@
-#ifndef __LCD_H
-#define __LCD_H
+#ifndef __LTDC_H
+#define __LTDC_H
 
 #include "stm32f7xx_hal.h"
 #include "string.h"
@@ -11,7 +11,7 @@ typedef struct
 	uint32_t TextColor;
 	uint32_t BackColor;
 	sFONT *pFont;
-}LCD_DrawPropTypeDef;
+}LTDC_DrawPropTypeDef;
 //------------------------------------------
 typedef enum
 {
@@ -21,27 +21,27 @@ typedef enum
 }Text_AlignModeTypedef;
 //------------------------------------------
 
-void LCD_FillScreen(uint32_t color);
-void LCD_FillRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color);
-void LCD_DrawPixel(uint16_t x1, uint16_t y1, uint32_t color);
-void LCD_DrawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color);
+void LTDC_FillScreen(uint32_t color);
+void LTDC_FillRectangle(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color);
+void LTDC_DrawPixel(uint16_t x1, uint16_t y1, uint32_t color);
+void LTDC_DrawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint32_t color);
 
-void LCD_FillScreen_565(uint16_t color);
-void LCD_FillRectangle_565(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
-void LCD_DrawPixel_565(uint16_t x1, uint16_t y1, uint16_t color);
-void LCD_DrawLine_565(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
+void LTDC_FillScreen_565(uint16_t color);
+void LTDC_FillRectangle_565(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
+void LTDC_DrawPixel_565(uint16_t x1, uint16_t y1, uint16_t color);
+void LTDC_DrawLine_565(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color);
 
-void LCD_DrawBitmap(uint32_t Xpos, uint32_t Ypos, uint8_t *pbmp);
-void LCD_DrawBitmapToMem(uint32_t Xpos, uint32_t Ypos, uint8_t *pbmp, uint8_t *pdst);
+void LTDC_DrawBitmap(uint32_t Xpos, uint32_t Ypos, uint8_t *pbmp);
+void LTDC_DrawBitmapToMem(uint32_t Xpos, uint32_t Ypos, uint8_t *pbmp, uint8_t *pdst);
 
 void DMA2D_LayersAlphaReconfig(uint32_t alpha1, uint32_t alpha2);
 
-void LCD_FonsIni(void);
-void LCD_SetFont(sFONT *fonts);
-void LCD_SetTextColor(uint32_t color);
-void LCD_SetBackColor(uint32_t color);
-void LCD_DrawChar(uint16_t x, uint16_t y, const uint8_t c);
-void LCD_DisplayString(uint16_t Xpos, uint16_t Ypos, const uint8_t *Text, Text_AlignModeTypedef Mode);
+void LTDC_FonsIni(void);
+void LTDC_SetFont(sFONT *fonts);
+void LTDC_SetTextColor(uint32_t color);
+void LTDC_SetBackColor(uint32_t color);
+void LTDC_DrawChar(uint16_t x, uint16_t y, const uint8_t c);
+void LTDC_DisplayString(uint16_t Xpos, uint16_t Ypos, uint8_t *Text, Text_AlignModeTypedef Mode);
 
 #define swap(a,b) {int16_t t=a;a=b;b=t;}
 #define convert24to32(x) (x|0xFF000000)

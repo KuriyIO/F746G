@@ -99,6 +99,9 @@ uint8_t* dma2d_in1 = (uint8_t *) 0xC017E800;
 uint8_t* dma2d_in2 = (uint8_t *) 0xC01FE000;
 TS_StateTypeDef TS_State;
 
+FRESULT fresult;
+uint8_t _acBuffer[4096];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -122,6 +125,22 @@ static void MX_TIM6_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+
+int APP_GetData(void * p, const U8 **ppData, unsigned NumBytesReq, U32 Off)
+{
+	//You must create an pointer on structure
+	FIL *phFile;
+
+	//and then initialize the pointer value is passed to the function APP_GetData
+	phFile=(FIL*) p;
+
+	//And then use this pointer to your function
+	f_lseek(phFile,Off);
+	fresult=f_read(phFile,_acBuffer,NumBytesReq,(void*)&bytesread);
+	*ppData = _acBuffer;
+
+	return bytesread;
+}
 
 /* USER CODE END 0 */
 
@@ -181,19 +200,46 @@ int main(void)
 
   __HAL_RCC_CRC_CLK_ENABLE();
   GUI_Init();
-  GUI_SetBkColor(GUI_DARKBLUE);
-  GUI_Clear();
+//  GUI_SetBkColor(GUI_DARKBLUE);
+//  GUI_Clear();
+//
+//  GUI_SetFont(&GUI_Font32B_1);
+//  GUI_SetTextAlign(GUI_TA_CENTER);
+//  GUI_SetColor(GUI_ORANGE);
+//  GUI_DispStringAt("Hello STemWin!!!", 240, 120);
 
-  GUI_SetFont(&GUI_Font32B_1);
-  GUI_SetTextAlign(GUI_TA_CENTER);
-  GUI_SetColor(GUI_ORANGE);
-  GUI_DispStringAt("Hello STemWin!!!", 240, 120);
+
 
   if(f_mount(&SDFatFs, (TCHAR const*)SD_Path, 0) != FR_OK)
   {
      LTDC_FillScreen(0xFFFF0000);
      Error_Handler();
   }
+
+  fresult=f_open(&MyFile,"image01.bmp", FA_READ);
+  GUI_MULTIBUF_BeginEx(0);
+  GUI_BMP_DrawEx(APP_GetData, &MyFile,0,0); // Draw image
+  GUI_MULTIBUF_EndEx(0);
+  f_close(&MyFile);
+  HAL_Delay(2000);
+  fresult=f_open(&MyFile,"image02.bmp", FA_READ);
+  GUI_MULTIBUF_BeginEx(0);
+  GUI_BMP_DrawEx(APP_GetData, &MyFile,0,0); // Draw image
+  GUI_MULTIBUF_EndEx(0);
+  f_close(&MyFile);
+  HAL_Delay(2000);
+  fresult=f_open(&MyFile,"image03.bmp", FA_READ);
+  GUI_MULTIBUF_BeginEx(0);
+  GUI_BMP_DrawEx(APP_GetData, &MyFile,0,0); // Draw image
+  GUI_MULTIBUF_EndEx(0);
+  f_close(&MyFile);
+  HAL_Delay(2000);
+  fresult=f_open(&MyFile,"image04.bmp", FA_READ);
+  GUI_MULTIBUF_BeginEx(0);
+  GUI_BMP_DrawEx(APP_GetData, &MyFile,0,0); // Draw image
+  GUI_MULTIBUF_EndEx(0);
+  f_close(&MyFile);
+  HAL_Delay(2000);
 
 #ifdef FULL_TEST
   fmc_test(&huart1);
@@ -217,7 +263,7 @@ int main(void)
 #ifdef FULL_TEST
 	  ts_test();
 #endif
-
+	  GUI_Delay(100);
   }
   /* USER CODE END 3 */
 

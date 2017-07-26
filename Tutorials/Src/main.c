@@ -200,6 +200,7 @@ int main(void)
 
   __HAL_RCC_CRC_CLK_ENABLE();
   GUI_Init();
+  GUI_SelectLayer(1);
 //  GUI_SetBkColor(GUI_DARKBLUE);
 //  GUI_Clear();
 //
@@ -216,30 +217,25 @@ int main(void)
      Error_Handler();
   }
 
-  fresult=f_open(&MyFile,"image01.bmp", FA_READ);
-  GUI_MULTIBUF_BeginEx(0);
-  GUI_BMP_DrawEx(APP_GetData, &MyFile,0,0); // Draw image
-  GUI_MULTIBUF_EndEx(0);
-  f_close(&MyFile);
-  HAL_Delay(2000);
-  fresult=f_open(&MyFile,"image02.bmp", FA_READ);
-  GUI_MULTIBUF_BeginEx(0);
-  GUI_BMP_DrawEx(APP_GetData, &MyFile,0,0); // Draw image
-  GUI_MULTIBUF_EndEx(0);
-  f_close(&MyFile);
-  HAL_Delay(2000);
-  fresult=f_open(&MyFile,"image03.bmp", FA_READ);
-  GUI_MULTIBUF_BeginEx(0);
-  GUI_BMP_DrawEx(APP_GetData, &MyFile,0,0); // Draw image
-  GUI_MULTIBUF_EndEx(0);
-  f_close(&MyFile);
-  HAL_Delay(2000);
-  fresult=f_open(&MyFile,"image04.bmp", FA_READ);
-  GUI_MULTIBUF_BeginEx(0);
-  GUI_BMP_DrawEx(APP_GetData, &MyFile,0,0); // Draw image
-  GUI_MULTIBUF_EndEx(0);
-  f_close(&MyFile);
-  HAL_Delay(2000);
+  GUI_SelectLayer(1);
+  GUI_SetColor(GUI_BLACK);
+  GUI_Clear();
+  GUI_SetColor(GUI_BLUE);
+  GUI_FillCircle(240, 136, 120);
+  GUI_SetColor(GUI_YELLOW);
+  for (int i = 0; i < 271; i++)
+  {
+	  U8 Alpha;
+	  Alpha = (i * 255 / 271);
+	  GUI_SetAlpha(Alpha);
+	  GUI_DrawHLine(i, 239 - (i*240/272), 239 + (i*240/272));
+  }
+  GUI_SetAlpha(0x80);
+  GUI_SetColor(GUI_MAGENTA);
+  GUI_SetFont(&GUI_Font32B_ASCII);
+  GUI_SetTextMode(GUI_TM_TRANS);
+  GUI_DispStringHCenterAt("Alphablending", 240, 5);
+  GUI_SetAlpha(0);
 
 #ifdef FULL_TEST
   fmc_test(&huart1);

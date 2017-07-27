@@ -53,6 +53,9 @@
 /* USER CODE BEGIN Includes */
 #include "GUI.h"
 #include "WM.h"
+#include "DIALOG.h"
+
+WM_HWIN CreateWindow(void);
 /* USER CODE END Includes */
 
 /* Private define ------------------------------------------------------------*/

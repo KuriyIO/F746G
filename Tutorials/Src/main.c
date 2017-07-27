@@ -55,6 +55,8 @@
 #include "lcd.h"
 #include "ft5336.h"
 #include "GUI.h"
+#include "WM.h"
+#include "DIALOG.h"
 #include "string.h"
 #include "fmctest.h"
 #include "ltdctest.h"
@@ -94,10 +96,12 @@ FIL MyFile; /* File object */
 extern char SD_Path[4]; /* SD logical drive path */
 uint8_t sect[4096];
 uint32_t bytesread = 0;
-uint8_t* bmp1 = (uint8_t *) 0xC00FF000;
-uint8_t* dma2d_in1 = (uint8_t *) 0xC017E800;
-uint8_t* dma2d_in2 = (uint8_t *) 0xC01FE000;
-TS_StateTypeDef TS_State;
+//uint8_t* bmp1 = (uint8_t *) 0xC00FF000;
+//uint8_t* dma2d_in1 = (uint8_t *) 0xC017E800;
+//uint8_t* dma2d_in2 = (uint8_t *) 0xC01FE000;
+TS_StateTypeDef ts;
+static GUI_PID_STATE TS_State;
+uint8_t ts_press_cnt=0;
 
 FRESULT fresult;
 uint8_t _acBuffer[4096];
@@ -121,7 +125,7 @@ static void MX_TIM6_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
+WM_HWIN CreateWindow(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -193,23 +197,11 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   SDRAM_Init(&hsdram1);
-  HAL_LTDC_SetAddress(&hltdc,LCD_FRAME_BUFFER,0);
-  LTDC_FillScreen(0);
   HAL_Delay(50);
   TouchInit();
-
+  HAL_TIM_Base_Start_IT(&htim6);
   __HAL_RCC_CRC_CLK_ENABLE();
   GUI_Init();
-  GUI_SelectLayer(1);
-//  GUI_SetBkColor(GUI_DARKBLUE);
-//  GUI_Clear();
-//
-//  GUI_SetFont(&GUI_Font32B_1);
-//  GUI_SetTextAlign(GUI_TA_CENTER);
-//  GUI_SetColor(GUI_ORANGE);
-//  GUI_DispStringAt("Hello STemWin!!!", 240, 120);
-
-
 
   if(f_mount(&SDFatFs, (TCHAR const*)SD_Path, 0) != FR_OK)
   {
@@ -218,24 +210,9 @@ int main(void)
   }
 
   GUI_SelectLayer(1);
-  GUI_SetColor(GUI_BLACK);
-  GUI_Clear();
-  GUI_SetColor(GUI_BLUE);
-  GUI_FillCircle(240, 136, 120);
-  GUI_SetColor(GUI_YELLOW);
-  for (int i = 0; i < 271; i++)
-  {
-	  U8 Alpha;
-	  Alpha = (i * 255 / 271);
-	  GUI_SetAlpha(Alpha);
-	  GUI_DrawHLine(i, 239 - (i*240/272), 239 + (i*240/272));
-  }
-  GUI_SetAlpha(0x80);
-  GUI_SetColor(GUI_MAGENTA);
-  GUI_SetFont(&GUI_Font32B_ASCII);
-  GUI_SetTextMode(GUI_TM_TRANS);
-  GUI_DispStringHCenterAt("Alphablending", 240, 5);
-  GUI_SetAlpha(0);
+  TS_State.Layer = 1;
+  WM_MULTIBUF_Enable(1);
+  CreateWindow();
 
 #ifdef FULL_TEST
   fmc_test(&huart1);
@@ -259,7 +236,7 @@ int main(void)
 #ifdef FULL_TEST
 	  ts_test();
 #endif
-	  GUI_Delay(100);
+	  GUI_Exec();
   }
   /* USER CODE END 3 */
 
@@ -1100,6 +1077,28 @@ void HAL_SDRAM_MspInit(SDRAM_HandleTypeDef *hsdram)
     /* GPIOH configuration */
     gpio_init_structure.Pin   = GPIO_PIN_3 | GPIO_PIN_5;
     HAL_GPIO_Init(GPIOH, &gpio_init_structure);
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	TS_GetState(&ts);
+	if (ts.touchDetected)
+	{
+		TS_State.Pressed = ts.touchDetected;
+		TS_State.y = ts.touchY[0];
+		TS_State.x = ts.touchX[0];
+		GUI_PID_StoreState(&TS_State);
+		ts_press_cnt++;
+	}
+	else
+	{
+		if(ts_press_cnt)
+		{
+			TS_State.Pressed = 0;
+			GUI_PID_StoreState(&TS_State);
+			ts_press_cnt=0;
+		}
+	}
 }
 
 /* USER CODE END 4 */

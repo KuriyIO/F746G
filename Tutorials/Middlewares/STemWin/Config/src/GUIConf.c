@@ -62,8 +62,8 @@ Purpose     : Display controller initialization
 //
 // Define the available number of bytes available for the GUI
 //
-#define GUI_NUMBYTES  0x200000
-#define SDRAM_START_ADDR	0xC0000000
+#define GUI_NUMBYTES  		(0x200000)
+#define SDRAM_START_ADDR	((void *)0xC0000000)
 
 /*********************************************************************
 *

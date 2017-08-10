@@ -29,11 +29,17 @@
 *
 **********************************************************************
 */
-#define ID_WINDOW_0  (GUI_ID_USER + 0x00)
-#define ID_MULTIPAGE_0  (GUI_ID_USER + 0x01)
+#define ID_WINDOW_0        (GUI_ID_USER + 0x00)
+#define ID_MULTIPAGE_0        (GUI_ID_USER + 0x01)
 
 
 // USER START (Optionally insert additional defines)
+WM_HWIN CreateHomePage(void);
+WM_HWIN CreateChAPage(void);
+WM_HWIN CreateChBPage(void);
+WM_HWIN CreateHorizontalPage(void);
+WM_HWIN CreateMeasurePage(void);
+WM_HWIN CreateTriggerPage(void);
 // USER END
 
 /*********************************************************************
@@ -51,7 +57,7 @@
 *       _aDialogCreate
 */
 static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
-  { WINDOW_CreateIndirect, "Window", ID_WINDOW_0, 0, 0, 480, 272, 0, 0x0, 0 },
+  { WINDOW_CreateIndirect, "MainWnd", ID_WINDOW_0, 0, 0, 480, 272, 0, 0x0, 0 },
   { MULTIPAGE_CreateIndirect, "Multipage", ID_MULTIPAGE_0, 0, 0, 480, 272, 0, 0x0, 0 },
   // USER START (Optionally insert additional widgets)
   // USER END
@@ -81,7 +87,7 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
   switch (pMsg->MsgId) {
   case WM_INIT_DIALOG:
     //
-    // Initialization of 'Window'
+    // Initialization of 'MainWnd'
     //
     hItem = pMsg->hWin;
     WINDOW_SetBkColor(hItem, GUI_MAKE_COLOR(0x00000000));
@@ -89,35 +95,26 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
     // Initialization of 'Multipage'
     //
     hItem = WM_GetDialogItem(pMsg->hWin, ID_MULTIPAGE_0);
-    MULTIPAGE_AddEmptyPage(hItem, 0, "Home");
-    MULTIPAGE_AddEmptyPage(hItem, 0, "Trigger");
-    MULTIPAGE_AddEmptyPage(hItem, 0, "Ch A");
-    MULTIPAGE_AddEmptyPage(hItem, 0, "Ch B");
-    MULTIPAGE_AddEmptyPage(hItem, 0, "Horizontal");
-    MULTIPAGE_AddEmptyPage(hItem, 0, "Measure");
+//    MULTIPAGE_AddEmptyPage(hItem, 0, "Home");
+//    MULTIPAGE_AddEmptyPage(hItem, 0, "Trigger");
+//    MULTIPAGE_AddEmptyPage(hItem, 0, "Ch A");
+//    MULTIPAGE_AddEmptyPage(hItem, 0, "Ch B");
+//    MULTIPAGE_AddEmptyPage(hItem, 0, "Horizontal");
+//    MULTIPAGE_AddEmptyPage(hItem, 0, "Measure");
     // USER START (Optionally insert additional code for further widget initialization)
+
     MULTIPAGE_SetBkColor(hItem, 0,1);
     MULTIPAGE_SetFont(hItem, GUI_FONT_20B_1);
     MULTIPAGE_SetTextColor(hItem, 0xFFFFFFFF, 1);
 
-    /* Drawing grid */
-    const int GRID_COUNT_VERT = 8;
-    const int GRID_COUNT_HOR = 12;
-    const int GRID_SIZE_VERT = 240;
-    const int GRID_SIZE_HOR = 360;
-    const int GRID_POS_X = 5;
-    const int GRID_POS_Y = 30;
+    MULTIPAGE_AddPage(hItem, CreateHomePage(), "Home");
+    MULTIPAGE_AddPage(hItem, CreateTriggerPage(), "Trigger");
+    MULTIPAGE_AddPage(hItem, CreateChAPage(), "Ch A");
+    MULTIPAGE_AddPage(hItem, CreateChBPage(), "Ch B");
+    MULTIPAGE_AddPage(hItem, CreateHorizontalPage(), "Horizontal");
+    MULTIPAGE_AddPage(hItem, CreateMeasurePage(), "Measure");
 
-    LCD_SetColor(0x0066FF66);
-    for(int i=0; i<=GRID_COUNT_VERT; i++)
-    {
-    	LCD_DrawHLine(GRID_POS_X, GRID_POS_Y+(i*(GRID_SIZE_VERT/GRID_COUNT_VERT)), GRID_POS_X+GRID_SIZE_HOR);
-    }
-
-    for(int i=0; i<=GRID_COUNT_HOR; i++)
-    {
-    	LCD_DrawVLine(GRID_POS_X+(i*(GRID_SIZE_HOR/GRID_COUNT_HOR)), GRID_POS_Y, GRID_POS_Y+GRID_SIZE_VERT);
-    }
+    MULTIPAGE_SelectPage(hItem, 0);
 
     // USER END
     break;
@@ -167,10 +164,10 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
 */
 /*********************************************************************
 *
-*       CreateWindow
+*       CreateMainWnd
 */
-WM_HWIN CreateWindow(void);
-WM_HWIN CreateWindow(void) {
+WM_HWIN CreateMainWnd(void);
+WM_HWIN CreateMainWnd(void) {
   WM_HWIN hWin;
 
   hWin = GUI_CreateDialogBox(_aDialogCreate, GUI_COUNTOF(_aDialogCreate), _cbDialog, WM_HBKWIN, 0, 0);

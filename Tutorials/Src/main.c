@@ -125,7 +125,8 @@ static void MX_TIM6_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-WM_HWIN CreateWindow(void);
+//WM_HWIN CreateWindow(void);
+WM_HWIN CreateMainWnd(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -212,7 +213,8 @@ int main(void)
   GUI_SelectLayer(1);
   TS_State.Layer = 1;
   WM_MULTIBUF_Enable(1);
-  CreateWindow();
+  CreateMainWnd();
+
 
 #ifdef FULL_TEST
   fmc_test(&huart1);

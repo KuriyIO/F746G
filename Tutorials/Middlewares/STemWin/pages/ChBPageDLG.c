@@ -29,8 +29,8 @@
 *
 **********************************************************************
 */
-#define ID_WINDOW_0  (GUI_ID_USER + 0x00)
-#define ID_MULTIPAGE_0  (GUI_ID_USER + 0x01)
+#define ID_WINDOW_0        (GUI_ID_USER + 0x04)
+#define ID_TEXT_0        (GUI_ID_USER + 0x05)
 
 
 // USER START (Optionally insert additional defines)
@@ -51,8 +51,8 @@
 *       _aDialogCreate
 */
 static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
-  { WINDOW_CreateIndirect, "Window", ID_WINDOW_0, 0, 0, 480, 272, 0, 0x0, 0 },
-  { MULTIPAGE_CreateIndirect, "Multipage", ID_MULTIPAGE_0, 0, 0, 480, 272, 0, 0x0, 0 },
+  { WINDOW_CreateIndirect, "ChBPage", ID_WINDOW_0, 0, 0, 480, 272, 0, 0x0, 0 },
+  { TEXT_CreateIndirect, "Text", ID_TEXT_0, 145, 84, 165, 87, 0, 0x64, 0 },
   // USER START (Optionally insert additional widgets)
   // USER END
 };
@@ -73,83 +73,20 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
 */
 static void _cbDialog(WM_MESSAGE * pMsg) {
   WM_HWIN hItem;
-  int     NCode;
-  int     Id;
   // USER START (Optionally insert additional variables)
   // USER END
 
   switch (pMsg->MsgId) {
   case WM_INIT_DIALOG:
     //
-    // Initialization of 'Window'
+    // Initialization of 'Text'
     //
-    hItem = pMsg->hWin;
-    WINDOW_SetBkColor(hItem, GUI_MAKE_COLOR(0x00000000));
-    //
-    // Initialization of 'Multipage'
-    //
-    hItem = WM_GetDialogItem(pMsg->hWin, ID_MULTIPAGE_0);
-    MULTIPAGE_AddEmptyPage(hItem, 0, "Home");
-    MULTIPAGE_AddEmptyPage(hItem, 0, "Trigger");
-    MULTIPAGE_AddEmptyPage(hItem, 0, "Ch A");
-    MULTIPAGE_AddEmptyPage(hItem, 0, "Ch B");
-    MULTIPAGE_AddEmptyPage(hItem, 0, "Horizontal");
-    MULTIPAGE_AddEmptyPage(hItem, 0, "Measure");
+    hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_0);
+    TEXT_SetFont(hItem, GUI_FONT_24B_1);
+    TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
+    TEXT_SetText(hItem, "Channel B Page");
     // USER START (Optionally insert additional code for further widget initialization)
-    MULTIPAGE_SetBkColor(hItem, 0,1);
-    MULTIPAGE_SetFont(hItem, GUI_FONT_20B_1);
-    MULTIPAGE_SetTextColor(hItem, 0xFFFFFFFF, 1);
-
-    /* Drawing grid */
-    const int GRID_COUNT_VERT = 8;
-    const int GRID_COUNT_HOR = 12;
-    const int GRID_SIZE_VERT = 240;
-    const int GRID_SIZE_HOR = 360;
-    const int GRID_POS_X = 5;
-    const int GRID_POS_Y = 30;
-
-    LCD_SetColor(0x0066FF66);
-    for(int i=0; i<=GRID_COUNT_VERT; i++)
-    {
-    	LCD_DrawHLine(GRID_POS_X, GRID_POS_Y+(i*(GRID_SIZE_VERT/GRID_COUNT_VERT)), GRID_POS_X+GRID_SIZE_HOR);
-    }
-
-    for(int i=0; i<=GRID_COUNT_HOR; i++)
-    {
-    	LCD_DrawVLine(GRID_POS_X+(i*(GRID_SIZE_HOR/GRID_COUNT_HOR)), GRID_POS_Y, GRID_POS_Y+GRID_SIZE_VERT);
-    }
-
     // USER END
-    break;
-  case WM_NOTIFY_PARENT:
-    Id    = WM_GetId(pMsg->hWinSrc);
-    NCode = pMsg->Data.v;
-    switch(Id) {
-    case ID_MULTIPAGE_0: // Notifications sent by 'Multipage'
-      switch(NCode) {
-      case WM_NOTIFICATION_CLICKED:
-        // USER START (Optionally insert code for reacting on notification message)
-        // USER END
-        break;
-      case WM_NOTIFICATION_RELEASED:
-        // USER START (Optionally insert code for reacting on notification message)
-        // USER END
-        break;
-      case WM_NOTIFICATION_MOVED_OUT:
-        // USER START (Optionally insert code for reacting on notification message)
-        // USER END
-        break;
-      case WM_NOTIFICATION_VALUE_CHANGED:
-        // USER START (Optionally insert code for reacting on notification message)
-        // USER END
-        break;
-      // USER START (Optionally insert additional code for further notification handling)
-      // USER END
-      }
-      break;
-    // USER START (Optionally insert additional code for further Ids)
-    // USER END
-    }
     break;
   // USER START (Optionally insert additional message handling)
   // USER END
@@ -167,10 +104,10 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
 */
 /*********************************************************************
 *
-*       CreateWindow
+*       CreateChBPage
 */
-WM_HWIN CreateWindow(void);
-WM_HWIN CreateWindow(void) {
+WM_HWIN CreateChBPage(void);
+WM_HWIN CreateChBPage(void) {
   WM_HWIN hWin;
 
   hWin = GUI_CreateDialogBox(_aDialogCreate, GUI_COUNTOF(_aDialogCreate), _cbDialog, WM_HBKWIN, 0, 0);

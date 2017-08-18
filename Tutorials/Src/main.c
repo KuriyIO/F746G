@@ -89,16 +89,12 @@ SDRAM_HandleTypeDef hsdram1;
 /* Private variables ---------------------------------------------------------*/
 
 //#define FULL_TEST
-#define LCD_FRAME_BUFFER          SDRAM_BANK_ADDR
 
 FATFS SDFatFs; /* File system object for SD card logical drive */
 FIL MyFile; /* File object */
 extern char SD_Path[4]; /* SD logical drive path */
 uint8_t sect[4096];
 uint32_t bytesread = 0;
-//uint8_t* bmp1 = (uint8_t *) 0xC00FF000;
-//uint8_t* dma2d_in1 = (uint8_t *) 0xC017E800;
-//uint8_t* dma2d_in2 = (uint8_t *) 0xC01FE000;
 TS_StateTypeDef ts;
 static GUI_PID_STATE TS_State;
 uint8_t ts_press_cnt=0;
@@ -125,7 +121,6 @@ static void MX_TIM6_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-//WM_HWIN CreateWindow(void);
 WM_HWIN CreateMainWnd(void);
 /* USER CODE END PFP */
 

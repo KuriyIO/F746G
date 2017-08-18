@@ -52,6 +52,7 @@ Purpose     : Display controller initialization
   */
 
 #include "GUI.h"
+#include "SDRAM_MEMORY.h"
 
 /*********************************************************************
 *
@@ -62,8 +63,8 @@ Purpose     : Display controller initialization
 //
 // Define the available number of bytes available for the GUI
 //
-#define GUI_NUMBYTES  		(0x200000)
-#define SDRAM_START_ADDR	((void *)0xC0000000)
+#define GUI_NUMBYTES  		MEM_EMWIN_SIZE
+#define EMWIN_MEM_ADDR		(void *)MEM_EMWIN
 
 /*********************************************************************
 *
@@ -83,7 +84,7 @@ void GUI_X_Config(void) {
   //
   // Assign memory to emWin
   //
-  GUI_ALLOC_AssignMemory(SDRAM_START_ADDR, GUI_NUMBYTES);
+  GUI_ALLOC_AssignMemory(EMWIN_MEM_ADDR, GUI_NUMBYTES);
   //
   // Set default font
   //

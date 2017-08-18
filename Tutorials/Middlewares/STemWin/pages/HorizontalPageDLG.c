@@ -19,6 +19,7 @@
 */
 
 // USER START (Optionally insert additional includes)
+#include "WIDGET_OSC.h"
 // USER END
 
 #include "DIALOG.h"
@@ -29,11 +30,15 @@
 *
 **********************************************************************
 */
-#define ID_WINDOW_0        (GUI_ID_USER + 0x05)
-#define ID_TEXT_0        (GUI_ID_USER + 0x06)
+#define ID_WINDOW_0          (GUI_ID_USER + 0x00)
+#define ID_TEXT_0          (GUI_ID_USER + 0x01)
+#define ID_TEXT_1          (GUI_ID_USER + 0x02)
+#define ID_SLIDER_0          (GUI_ID_USER + 0x04)
+#define ID_SPINBOX_0          (GUI_ID_USER + 0x05)
 
 
 // USER START (Optionally insert additional defines)
+#define ID_OSC_0			(GUI_ID_USER + 0x06)
 // USER END
 
 /*********************************************************************
@@ -51,9 +56,13 @@
 *       _aDialogCreate
 */
 static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
-  { WINDOW_CreateIndirect, "HorizontalPage", ID_WINDOW_0, 0, 0, 480, 272, 0, 0x0, 0 },
-  { TEXT_CreateIndirect, "Text", ID_TEXT_0, 114, 88, 243, 87, 0, 0x64, 0 },
+  { WINDOW_CreateIndirect, "HorizontalPage", ID_WINDOW_0, 0, 0, 480, 240, 0, 0x0, 0 },
+  { TEXT_CreateIndirect, "DisplayText", ID_TEXT_0, 0, 0, 360, 240, 0, 0x64, 0 },
+  { TEXT_CreateIndirect, "LblSDiv", ID_TEXT_1, 380, 20, 80, 20, 0, 0x64, 0 },
+  { SLIDER_CreateIndirect, "SlPos", ID_SLIDER_0, 0, 220, 360, 20, 0, 0x0, 0 },
+  { SPINBOX_CreateIndirect, "SbSDiv", ID_SPINBOX_0, 375, 170, 90, 45, 0, 0x0, 0 },
   // USER START (Optionally insert additional widgets)
+  {	OSC_CreateIndirect, "Oscilloscope", ID_OSC_0, 0, 0, 360, 240, 0, 0, 0}
   // USER END
 };
 
@@ -73,20 +82,83 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
 */
 static void _cbDialog(WM_MESSAGE * pMsg) {
   WM_HWIN hItem;
+  int     NCode;
+  int     Id;
   // USER START (Optionally insert additional variables)
   // USER END
 
   switch (pMsg->MsgId) {
   case WM_INIT_DIALOG:
     //
-    // Initialization of 'Text'
+    // Initialization of 'DisplayText'
     //
     hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_0);
-    TEXT_SetFont(hItem, GUI_FONT_24B_1);
+    TEXT_SetFont(hItem, GUI_FONT_32B_1);
+    TEXT_SetTextColor(hItem, GUI_MAKE_COLOR(0x00000000));
     TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
-    TEXT_SetText(hItem, "Horizontal Page");
+    TEXT_SetText(hItem, "Oscilloscope display");
+    //
+    // Initialization of 'LblSDiv'
+    //
+    hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_1);
+    TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_TOP);
+    TEXT_SetText(hItem, "Sec/Div");
+    TEXT_SetFont(hItem, GUI_FONT_16B_1);
+    //
+    // Initialization of 'SbSDiv'
+    //
+    hItem = WM_GetDialogItem(pMsg->hWin, ID_SPINBOX_0);
+    SPINBOX_SetFont(hItem, GUI_FONT_20B_1);
     // USER START (Optionally insert additional code for further widget initialization)
     // USER END
+    break;
+  case WM_NOTIFY_PARENT:
+    Id    = WM_GetId(pMsg->hWinSrc);
+    NCode = pMsg->Data.v;
+    switch(Id) {
+    case ID_SLIDER_0: // Notifications sent by 'SlPos'
+      switch(NCode) {
+      case WM_NOTIFICATION_CLICKED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      case WM_NOTIFICATION_RELEASED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      case WM_NOTIFICATION_VALUE_CHANGED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      // USER START (Optionally insert additional code for further notification handling)
+      // USER END
+      }
+      break;
+    case ID_SPINBOX_0: // Notifications sent by 'SbSDiv'
+      switch(NCode) {
+      case WM_NOTIFICATION_CLICKED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      case WM_NOTIFICATION_RELEASED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      case WM_NOTIFICATION_MOVED_OUT:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      case WM_NOTIFICATION_VALUE_CHANGED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      // USER START (Optionally insert additional code for further notification handling)
+      // USER END
+      }
+      break;
+    // USER START (Optionally insert additional code for further Ids)
+    // USER END
+    }
     break;
   // USER START (Optionally insert additional message handling)
   // USER END

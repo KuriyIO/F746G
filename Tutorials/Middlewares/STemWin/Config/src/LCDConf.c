@@ -55,6 +55,7 @@ Purpose     : Display controller configuration (single layer)
 #include "GUIDRV_Lin.h"
 #include "main.h"
 #include "stm32f7xx_hal.h"
+#include "SDRAM_MEMORY.h"
 
 /*********************************************************************
 *
@@ -74,8 +75,8 @@ Purpose     : Display controller configuration (single layer)
 //
 #define NUM_BUFFERS  3 // Number of multiple buffers to be used
 #define NUM_VSCREENS 1 // Number of virtual screens to be used
-#define FRAME_BUFFER_ADDRESS_LAYER_0 0xC0200000 /* Address in SDRAM for frame buffer */
-#define FRAME_BUFFER_ADDRESS_LAYER_1 0xC0400000 /* Address in SDRAM for frame buffer */
+#define FRAME_BUFFER_ADDRESS_LAYER_0 MEM_LTDC_LAYER_1 /* Address in SDRAM for frame buffer */
+#define FRAME_BUFFER_ADDRESS_LAYER_1 MEM_LTDC_LAYER_2 /* Address in SDRAM for frame buffer */
 #define GUI_NUM_LAYERS 2
 /*********************************************************************
 *

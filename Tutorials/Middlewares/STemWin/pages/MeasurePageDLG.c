@@ -19,6 +19,7 @@
 */
 
 // USER START (Optionally insert additional includes)
+#include "WIDGET_OSC.h"
 // USER END
 
 #include "DIALOG.h"
@@ -29,11 +30,19 @@
 *
 **********************************************************************
 */
-#define ID_WINDOW_0  (GUI_ID_USER + 0x06)
-#define ID_TEXT_0  (GUI_ID_USER + 0x07)
+#define ID_WINDOW_0  (GUI_ID_USER + 0x00)
+#define ID_TEXT_0  (GUI_ID_USER + 0x02)
+#define ID_SLIDER_0  (GUI_ID_USER + 0x03)
+#define ID_TEXT_1  (GUI_ID_USER + 0x04)
+#define ID_CHECKBOX_0  (GUI_ID_USER + 0x05)
+#define ID_SLIDER_1  (GUI_ID_USER + 0x06)
+#define ID_CHECKBOX_1  (GUI_ID_USER + 0x07)
+#define ID_TEXT_2  (GUI_ID_USER + 0x08)
+#define ID_CHECKBOX_2  (GUI_ID_USER + 0x09)
 
 
 // USER START (Optionally insert additional defines)
+#define ID_OSC_0	(GUI_ID_USER+ 0xFF)
 // USER END
 
 /*********************************************************************
@@ -51,9 +60,17 @@
 *       _aDialogCreate
 */
 static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
-  { WINDOW_CreateIndirect, "MeasurePage", ID_WINDOW_0, 0, 0, 480, 272, 0, 0x0, 0 },
-  { TEXT_CreateIndirect, "Text", ID_TEXT_0, 151, 99, 172, 65, 0, 0x64, 0 },
+  { WINDOW_CreateIndirect, "MeasurePage", ID_WINDOW_0, 0, 0, 480, 240, 0, 0x0, 0 },
+  { TEXT_CreateIndirect, "LblVertCursor", ID_TEXT_0, 370, 70, 100, 20, 0, 0x64, 0 },
+  { SLIDER_CreateIndirect, "SlVertPos", ID_SLIDER_0, 0, 0, 20, 240, 8, 0x0, 0 },
+  { TEXT_CreateIndirect, "LblHorCursor", ID_TEXT_1, 380, 10, 80, 20, 0, 0x64, 0 },
+  { CHECKBOX_CreateIndirect, "CbHorCursor", ID_CHECKBOX_0, 405, 30, 30, 30, 0, 0x0, 0 },
+  { SLIDER_CreateIndirect, "SlHorPos", ID_SLIDER_1, 0, 220, 360, 20, 0, 0x0, 0 },
+  { CHECKBOX_CreateIndirect, "CbVertCursor", ID_CHECKBOX_1, 405, 90, 30, 30, 0, 0x0, 0 },
+  { TEXT_CreateIndirect, "LblVolts", ID_TEXT_2, 380, 130, 80, 20, 0, 0x0, 0 },
+  { CHECKBOX_CreateIndirect, "CbVolts", ID_CHECKBOX_2, 405, 150, 30, 30, 0, 0x0, 0 },
   // USER START (Optionally insert additional widgets)
+  {	OSC_CreateIndirect, "Oscilloscope", ID_OSC_0, 0, 0, 360, 240, 0, 0, 0}
   // USER END
 };
 
@@ -73,23 +90,149 @@ static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
 */
 static void _cbDialog(WM_MESSAGE * pMsg) {
   WM_HWIN hItem;
+  int     NCode;
+  int     Id;
   // USER START (Optionally insert additional variables)
-
   // USER END
 
   switch (pMsg->MsgId) {
   case WM_INIT_DIALOG:
     //
-    // Initialization of 'Text'
+    // Initialization of 'LblVertCursor'
     //
     hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_0);
-    TEXT_SetFont(hItem, GUI_FONT_24B_1);
-    TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_VCENTER);
-    TEXT_SetText(hItem, "Measure Page");
+    TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_TOP);
+    TEXT_SetText(hItem, "Vert. Cursors");
+    TEXT_SetFont(hItem, GUI_FONT_16B_1);
+    //
+    // Initialization of 'LblHorCursor'
+    //
+    hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_1);
+    TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_TOP);
+    TEXT_SetFont(hItem, GUI_FONT_16B_1);
+    TEXT_SetText(hItem, "Hor. Cursors");
+    //
+    // Initialization of 'CbHorCursor'
+    //
+    hItem = WM_GetDialogItem(pMsg->hWin, ID_CHECKBOX_0);
+    CHECKBOX_SetText(hItem, " ");
+    CHECKBOX_SetFont(hItem, GUI_FONT_24B_1);
+    //
+    // Initialization of 'CbVertCursor'
+    //
+    hItem = WM_GetDialogItem(pMsg->hWin, ID_CHECKBOX_1);
+    CHECKBOX_SetText(hItem, " ");
+    //
+    // Initialization of 'LblVolts'
+    //
+    hItem = WM_GetDialogItem(pMsg->hWin, ID_TEXT_2);
+    TEXT_SetFont(hItem, GUI_FONT_16B_1);
+    TEXT_SetTextAlign(hItem, GUI_TA_HCENTER | GUI_TA_TOP);
+    //
+    // Initialization of 'CbVolts'
+    //
+    hItem = WM_GetDialogItem(pMsg->hWin, ID_CHECKBOX_2);
+    CHECKBOX_SetText(hItem, " ");
     // USER START (Optionally insert additional code for further widget initialization)
-    hItem = pMsg->hWin;
-    WINDOW_SetBkColor(hItem, GUI_MAKE_COLOR(0x00999999));
     // USER END
+    break;
+  case WM_NOTIFY_PARENT:
+    Id    = WM_GetId(pMsg->hWinSrc);
+    NCode = pMsg->Data.v;
+    switch(Id) {
+    case ID_SLIDER_0: // Notifications sent by 'SlVertPos'
+      switch(NCode) {
+      case WM_NOTIFICATION_CLICKED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      case WM_NOTIFICATION_RELEASED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      case WM_NOTIFICATION_VALUE_CHANGED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      // USER START (Optionally insert additional code for further notification handling)
+      // USER END
+      }
+      break;
+    case ID_CHECKBOX_0: // Notifications sent by 'CbHorCursor'
+      switch(NCode) {
+      case WM_NOTIFICATION_CLICKED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      case WM_NOTIFICATION_RELEASED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      case WM_NOTIFICATION_VALUE_CHANGED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      // USER START (Optionally insert additional code for further notification handling)
+      // USER END
+      }
+      break;
+    case ID_SLIDER_1: // Notifications sent by 'SlHorPos'
+      switch(NCode) {
+      case WM_NOTIFICATION_CLICKED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      case WM_NOTIFICATION_RELEASED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      case WM_NOTIFICATION_VALUE_CHANGED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      // USER START (Optionally insert additional code for further notification handling)
+      // USER END
+      }
+      break;
+    case ID_CHECKBOX_1: // Notifications sent by 'CbVertCursor'
+      switch(NCode) {
+      case WM_NOTIFICATION_CLICKED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      case WM_NOTIFICATION_RELEASED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      case WM_NOTIFICATION_VALUE_CHANGED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      // USER START (Optionally insert additional code for further notification handling)
+      // USER END
+      }
+      break;
+    case ID_CHECKBOX_2: // Notifications sent by 'CbVolts'
+      switch(NCode) {
+      case WM_NOTIFICATION_CLICKED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      case WM_NOTIFICATION_RELEASED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      case WM_NOTIFICATION_VALUE_CHANGED:
+        // USER START (Optionally insert code for reacting on notification message)
+        // USER END
+        break;
+      // USER START (Optionally insert additional code for further notification handling)
+      // USER END
+      }
+      break;
+    // USER START (Optionally insert additional code for further Ids)
+    // USER END
+    }
     break;
   // USER START (Optionally insert additional message handling)
   // USER END

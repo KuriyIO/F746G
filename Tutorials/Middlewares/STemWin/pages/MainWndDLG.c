@@ -19,6 +19,13 @@
 */
 
 // USER START (Optionally insert additional includes)
+#include "DIALOG.h"
+WM_HWIN CreateHomePage(void);
+WM_HWIN CreateChAPage(void);
+WM_HWIN CreateChBPage(void);
+WM_HWIN CreateHorizontalPage(void);
+WM_HWIN CreateMeasurePage(void);
+WM_HWIN CreateTriggerPage(void);
 // USER END
 
 #include "DIALOG.h"
@@ -30,16 +37,11 @@
 **********************************************************************
 */
 #define ID_WINDOW_0        (GUI_ID_USER + 0x00)
-#define ID_MULTIPAGE_0        (GUI_ID_USER + 0x01)
+
 
 
 // USER START (Optionally insert additional defines)
-WM_HWIN CreateHomePage(void);
-WM_HWIN CreateChAPage(void);
-WM_HWIN CreateChBPage(void);
-WM_HWIN CreateHorizontalPage(void);
-WM_HWIN CreateMeasurePage(void);
-WM_HWIN CreateTriggerPage(void);
+#define ID_MULTIPAGE_0        (GUI_ID_USER + 0x01)
 // USER END
 
 /*********************************************************************
@@ -58,8 +60,8 @@ WM_HWIN CreateTriggerPage(void);
 */
 static const GUI_WIDGET_CREATE_INFO _aDialogCreate[] = {
   { WINDOW_CreateIndirect, "MainWnd", ID_WINDOW_0, 0, 0, 480, 272, 0, 0x0, 0 },
-  { MULTIPAGE_CreateIndirect, "Multipage", ID_MULTIPAGE_0, 0, 0, 480, 272, 0, 0x0, 0 },
   // USER START (Optionally insert additional widgets)
+  { MULTIPAGE_CreateIndirect, "Multipage", ID_MULTIPAGE_0, 0, 0, 480, 272, 0, 0x0, 0 }
   // USER END
 };
 
@@ -91,21 +93,15 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
     //
     hItem = pMsg->hWin;
     WINDOW_SetBkColor(hItem, GUI_MAKE_COLOR(0x00000000));
-    //
-    // Initialization of 'Multipage'
-    //
-    hItem = WM_GetDialogItem(pMsg->hWin, ID_MULTIPAGE_0);
-//    MULTIPAGE_AddEmptyPage(hItem, 0, "Home");
-//    MULTIPAGE_AddEmptyPage(hItem, 0, "Trigger");
-//    MULTIPAGE_AddEmptyPage(hItem, 0, "Ch A");
-//    MULTIPAGE_AddEmptyPage(hItem, 0, "Ch B");
-//    MULTIPAGE_AddEmptyPage(hItem, 0, "Horizontal");
-//    MULTIPAGE_AddEmptyPage(hItem, 0, "Measure");
+
     // USER START (Optionally insert additional code for further widget initialization)
+
+    hItem = WM_GetDialogItem(pMsg->hWin, ID_MULTIPAGE_0);
 
     MULTIPAGE_SetBkColor(hItem, 0,1);
     MULTIPAGE_SetFont(hItem, GUI_FONT_20B_1);
-    MULTIPAGE_SetTextColor(hItem, 0xFFFFFFFF, 1);
+
+    MULTIPAGE_SetTabHeight(hItem, 30);
 
     MULTIPAGE_AddPage(hItem, CreateHomePage(), "Home");
     MULTIPAGE_AddPage(hItem, CreateTriggerPage(), "Trigger");
@@ -122,25 +118,29 @@ static void _cbDialog(WM_MESSAGE * pMsg) {
     Id    = WM_GetId(pMsg->hWinSrc);
     NCode = pMsg->Data.v;
     switch(Id) {
-    case ID_MULTIPAGE_0: // Notifications sent by 'Multipage'
-      switch(NCode) {
-      case WM_NOTIFICATION_CLICKED:
-        // USER START (Optionally insert code for reacting on notification message)
-        // USER END
-        break;
-      case WM_NOTIFICATION_RELEASED:
-        // USER START (Optionally insert code for reacting on notification message)
-        // USER END
-        break;
-      case WM_NOTIFICATION_MOVED_OUT:
-        // USER START (Optionally insert code for reacting on notification message)
-        // USER END
-        break;
-      case WM_NOTIFICATION_VALUE_CHANGED:
-        // USER START (Optionally insert code for reacting on notification message)
-        // USER END
-        break;
+
       // USER START (Optionally insert additional code for further notification handling)
+
+      case ID_MULTIPAGE_0: // Notifications sent by 'Multipage'
+	  switch(NCode) {
+	  case WM_NOTIFICATION_CLICKED:
+		// USER START (Optionally insert code for reacting on notification message)
+		  asm("nop");
+		// USER END
+		break;
+	  case WM_NOTIFICATION_RELEASED:
+		// USER START (Optionally insert code for reacting on notification message)
+		// USER END
+		break;
+	  case WM_NOTIFICATION_MOVED_OUT:
+		// USER START (Optionally insert code for reacting on notification message)
+		// USER END
+		break;
+	  case WM_NOTIFICATION_VALUE_CHANGED:
+		// USER START (Optionally insert code for reacting on notification message)
+		// USER END
+		break;
+
       // USER END
       }
       break;
